@@ -1,13 +1,12 @@
 <?php
 
-use App\Models\Brand;
-use App\Models\Product;
-use App\Models\LicenseKey;
-use App\Models\License;
-use App\Models\Activation;
-use App\Models\User;
 use App\Enums\LicenseStatus;
-use App\Enums\ActivationStatus;
+use App\Models\Activation;
+use App\Models\Brand;
+use App\Models\License;
+use App\Models\LicenseKey;
+use App\Models\Product;
+use App\Models\User;
 
 describe('Model Relationships and Complex Scenarios', function () {
     it('can create a complete license ecosystem', function () {

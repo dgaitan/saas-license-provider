@@ -1,10 +1,9 @@
 <?php
 
-use App\Models\Brand;
-use App\Models\Product;
-use App\Models\LicenseKey;
-use App\Models\License;
 use App\Enums\LicenseStatus;
+use App\Models\Brand;
+use App\Models\License;
+use App\Models\Product;
 
 describe('User Story 1 Integration - Brand can provision a license', function () {
     it('implements the complete US1 workflow: create license key, create license, associate them', function () {

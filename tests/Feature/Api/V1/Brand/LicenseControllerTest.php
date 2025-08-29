@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\Brand;
-use App\Models\Product;
-use App\Models\LicenseKey;
-use App\Models\License;
 use App\Enums\LicenseStatus;
+use App\Models\Brand;
+use App\Models\License;
+use App\Models\LicenseKey;
+use App\Models\Product;
 
 beforeEach(function () {
     $this->brand = Brand::factory()->create();

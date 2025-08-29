@@ -28,10 +28,10 @@ class ActivationFactory extends Factory
     {
         return [
             'license_id' => License::factory(),
-            'instance_id' => 'instance_' . $this->faker->unique()->numberBetween(1, 1000),
+            'instance_id' => 'instance_'.$this->faker->unique()->numberBetween(1, 1000),
             'instance_type' => 'wordpress',
-            'instance_url' => 'https://site' . $this->faker->unique()->numberBetween(1, 1000) . '.com',
-            'machine_id' => 'machine_' . $this->faker->unique()->numberBetween(1, 1000),
+            'instance_url' => 'https://site'.$this->faker->unique()->numberBetween(1, 1000).'.com',
+            'machine_id' => 'machine_'.$this->faker->unique()->numberBetween(1, 1000),
             'status' => ActivationStatus::ACTIVE,
             'activated_at' => now()->subDays($this->faker->numberBetween(1, 30)),
             'deactivated_at' => null,
@@ -43,7 +43,7 @@ class ActivationFactory extends Factory
      */
     public function withStatus(ActivationStatus $status): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => $status,
             'deactivated_at' => $status === ActivationStatus::DEACTIVATED ? now() : null,
         ]);
@@ -78,7 +78,7 @@ class ActivationFactory extends Factory
      */
     public function forLicense(License $license): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'license_id' => $license->id,
         ]);
     }
@@ -86,9 +86,9 @@ class ActivationFactory extends Factory
     /**
      * Create an activation for a specific instance.
      */
-    public function forInstance(string $instanceId, string $instanceUrl = null): static
+    public function forInstance(string $instanceId, ?string $instanceUrl = null): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'instance_id' => $instanceId,
             'instance_url' => $instanceUrl ?? $this->faker->url(),
         ]);
@@ -99,7 +99,7 @@ class ActivationFactory extends Factory
      */
     public function forWordPressSite(string $siteUrl): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'instance_type' => 'wordpress',
             'instance_url' => $siteUrl,
             'instance_id' => $this->faker->uuid(),
@@ -111,7 +111,7 @@ class ActivationFactory extends Factory
      */
     public function forMachine(string $machineId): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'instance_type' => 'machine',
             'machine_id' => $machineId,
             'instance_id' => $machineId,

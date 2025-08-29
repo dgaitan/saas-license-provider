@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Brand model representing multi-tenant brands in the license service.
- * 
+ *
  * @property int $id
  * @property string $name
  * @property string $slug
@@ -15,13 +15,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_active
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * 
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LicenseKey> $licenseKeys
  */
 class Brand extends BaseApiModel
 {
-
     /**
      * The attributes that are mass assignable.
      *
@@ -65,7 +63,7 @@ class Brand extends BaseApiModel
      */
     public static function generateApiKey(): string
     {
-        return 'brand_' . str()->random(32);
+        return 'brand_'.str()->random(32);
     }
 
     /**

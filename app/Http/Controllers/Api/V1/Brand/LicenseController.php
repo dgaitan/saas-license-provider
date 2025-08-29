@@ -19,7 +19,7 @@ class LicenseController extends BaseApiController
 
     /**
      * Store a newly created license.
-     * 
+     *
      * US1: Brand can provision a license
      */
     public function store(StoreLicenseRequest $request): JsonResponse
@@ -52,7 +52,7 @@ class LicenseController extends BaseApiController
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
-        if (!$license) {
+        if (! $license) {
             return $this->errorResponse('License not found', 404);
         }
 
@@ -64,7 +64,7 @@ class LicenseController extends BaseApiController
 
     /**
      * Renew a license by extending its expiration date.
-     * 
+     *
      * US2: Brand can change license lifecycle
      */
     public function renew(RenewLicenseRequest $request, License $license): JsonResponse
@@ -74,7 +74,7 @@ class LicenseController extends BaseApiController
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
-        if (!$license) {
+        if (! $license) {
             return $this->errorResponse('License not found', 404);
         }
 
@@ -89,7 +89,7 @@ class LicenseController extends BaseApiController
 
     /**
      * Suspend a license.
-     * 
+     *
      * US2: Brand can change license lifecycle
      */
     public function suspend(License $license): JsonResponse
@@ -99,7 +99,7 @@ class LicenseController extends BaseApiController
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
-        if (!$license) {
+        if (! $license) {
             return $this->errorResponse('License not found', 404);
         }
 
@@ -113,7 +113,7 @@ class LicenseController extends BaseApiController
 
     /**
      * Resume a suspended license.
-     * 
+     *
      * US2: Brand can change license lifecycle
      */
     public function resume(License $license): JsonResponse
@@ -123,7 +123,7 @@ class LicenseController extends BaseApiController
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
-        if (!$license) {
+        if (! $license) {
             return $this->errorResponse('License not found', 404);
         }
 
@@ -137,7 +137,7 @@ class LicenseController extends BaseApiController
 
     /**
      * Cancel a license.
-     * 
+     *
      * US2: Brand can change license lifecycle
      */
     public function cancel(License $license): JsonResponse
@@ -147,7 +147,7 @@ class LicenseController extends BaseApiController
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
-        if (!$license) {
+        if (! $license) {
             return $this->errorResponse('License not found', 404);
         }
 

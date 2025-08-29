@@ -1,0 +1,67 @@
+name: Laravel Tests
+
+on:
+  pull_request:
+    branches: [ master, main ]
+  push:
+    branches: [ master, main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, mbstring, pdo, pdo_sqlite, phar, tokenizer, xml, xmlwriter, zip, curl, fileinfo, openssl, pcntl, posix, sodium, bcmath, soap, sockets, tidy, xmlrpc, xsl, zip, calendar, exif, ftp, gettext, shmop, sysvmsg, sysvsem, sysvshm, wddx, xmlreader, xmlwriter, xsl, zend-opcache
+        coverage: none
+
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+    - name: Install dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Generate key
+      run: php artisan key:generate
+
+    - name: Directory permissions
+      run: chmod -R 777 storage bootstrap/cache
+
+    - name: Create database
+      run: |
+        php artisan migrate --force
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: :memory:
+
+    - name: Install Pest
+      run: composer require pestphp/pest --dev --no-interaction
+
+    - name: Install Laravel Pint
+      run: composer require laravel/pint --dev --no-interaction
+
+    - name: Run Laravel Pint
+      run: ./vendor/bin/pint --test
+
+    - name: Run tests with Pest
+      run: php artisan test
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: :memory:
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          storage/logs/
+          storage/framework/cache/
+          storage/framework/sessions/
+          storage/framework/views/

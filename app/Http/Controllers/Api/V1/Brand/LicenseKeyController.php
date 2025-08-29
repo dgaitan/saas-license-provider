@@ -18,7 +18,7 @@ class LicenseKeyController extends BaseApiController
 
     /**
      * Store a newly created license key.
-     * 
+     *
      * US1: Brand can provision a license
      */
     public function store(StoreLicenseKeyRequest $request): JsonResponse
@@ -48,7 +48,7 @@ class LicenseKeyController extends BaseApiController
 
         $licenseKey = $this->licenseKeyService->findLicenseKeyByUuid($licenseKey->uuid, $brand);
 
-        if (!$licenseKey) {
+        if (! $licenseKey) {
             return $this->errorResponse('License key not found', 404);
         }
 

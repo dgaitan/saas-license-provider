@@ -48,8 +48,52 @@ This service acts as the single source of truth for licenses and entitlements ac
 
 5. **Start the development server**
    ```bash
-   php artisan serve
+   php artisan serve --host=0.0.0.0 --port=8002
    ```
+
+## Testing
+
+### Run Tests Locally
+```bash
+# Run all tests
+php artisan test
+
+# Run specific test file
+php artisan test tests/Feature/Api/V1/Brand/LicenseControllerTest.php
+
+# Run tests with coverage
+php artisan test --coverage
+```
+
+### Code Quality Tools
+```bash
+# Run Laravel Pint (code style)
+./vendor/bin/pint
+
+# Run all quality checks
+./vendor/bin/pint && php artisan test
+```
+
+## Continuous Integration
+
+This project uses GitHub Actions for continuous integration. The workflow runs on every pull request to the `master` branch and includes:
+
+- **PHP 8.2** setup
+- **Dependency installation** via Composer
+- **Code style checking** with Laravel Pint
+- **Test execution** with Pest
+- **Artifact upload** for test results
+
+### Workflow Status
+The CI pipeline will automatically run when you:
+- Create a pull request to `master` or `main`
+- Push commits to `master` or `main`
+
+### Required Status Checks
+Before merging, ensure:
+- ✅ All tests pass
+- ✅ Code style checks pass
+- ✅ No merge conflicts
 
 ## API Documentation
 

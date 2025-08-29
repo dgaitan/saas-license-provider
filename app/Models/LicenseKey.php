@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * LicenseKey model representing license keys that users receive.
- * 
+ *
  * @property int $id
  * @property int $brand_id
  * @property string $key
@@ -15,13 +15,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_active
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * 
  * @property-read \App\Models\Brand $brand
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\License> $licenses
  */
 class LicenseKey extends BaseApiModel
 {
-
     /**
      * The attributes that are mass assignable.
      *

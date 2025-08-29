@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Product model representing products within brands.
- * 
+ *
  * @property int $id
  * @property int $brand_id
  * @property string $name
@@ -17,13 +17,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_active
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * 
  * @property-read \App\Models\Brand $brand
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\License> $licenses
  */
 class Product extends BaseApiModel
 {
-
     /**
      * The attributes that are mass assignable.
      *

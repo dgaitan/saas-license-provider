@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Activation model representing license activations for specific instances.
- * 
+ *
  * @property int $id
  * @property int $license_id
  * @property string $instance_id
@@ -19,12 +19,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Carbon\Carbon|null $deactivated_at
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * 
  * @property-read \App\Models\License $license
  */
 class Activation extends BaseApiModel
 {
-
     /**
      * The attributes that are mass assignable.
      *

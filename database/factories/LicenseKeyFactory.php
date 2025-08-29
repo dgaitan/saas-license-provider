@@ -38,7 +38,7 @@ class LicenseKeyFactory extends Factory
      */
     public function inactive(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'is_active' => false,
         ]);
     }
@@ -48,7 +48,7 @@ class LicenseKeyFactory extends Factory
      */
     public function forBrand(Brand $brand): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'brand_id' => $brand->id,
         ]);
     }
@@ -58,7 +58,7 @@ class LicenseKeyFactory extends Factory
      */
     public function forCustomer(string $email): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'customer_email' => $email,
         ]);
     }

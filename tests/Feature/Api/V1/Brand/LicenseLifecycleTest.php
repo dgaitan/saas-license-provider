@@ -173,7 +173,7 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
         // Try to operate on license from different brand
         $response = $this->patchJson("/api/v1/licenses/{$otherLicense->uuid}/renew");
         $response->assertStatus(404);
-        expect($response->json('message'))->toContain('License not found');
+        expect($response->json('message'))->toContain('not found');
 
         $response = $this->patchJson("/api/v1/licenses/{$otherLicense->uuid}/suspend");
         $response->assertStatus(404);

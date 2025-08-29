@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 abstract class BaseApiModel extends Model
 {
-    use HasFactory, HasUuid;
+    use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that should be cast.
@@ -22,8 +23,6 @@ abstract class BaseApiModel extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-
 
     /**
      * Scope to get active records.
