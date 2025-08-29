@@ -26,8 +26,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/license-keys/{licenseKey}', 'show');
     });
 
-    Route::controller(App\Http\Controllers\Api\V1\Brand\LicenseController::class)->group(function () {
-        Route::post('/licenses', 'store');
-        Route::get('/licenses/{license}', 'show');
-    });
+               Route::controller(App\Http\Controllers\Api\V1\Brand\LicenseController::class)->group(function () {
+               Route::post('/licenses', 'store');
+               Route::get('/licenses/{license}', 'show');
+               Route::patch('/licenses/{license}/renew', 'renew');
+               Route::patch('/licenses/{license}/suspend', 'suspend');
+               Route::patch('/licenses/{license}/resume', 'resume');
+               Route::patch('/licenses/{license}/cancel', 'cancel');
+           });
 });

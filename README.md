@@ -103,6 +103,36 @@ Content-Type: application/json
 GET /licenses/{uuid}
 ```
 
+#### License Lifecycle Management
+
+**Renew License**
+```bash
+PATCH /licenses/{uuid}/renew
+Content-Type: application/json
+
+{
+    "days": 180
+}
+```
+
+**Suspend License**
+```bash
+PATCH /licenses/{uuid}/suspend
+Content-Type: application/json
+```
+
+**Resume License**
+```bash
+PATCH /licenses/{uuid}/resume
+Content-Type: application/json
+```
+
+**Cancel License**
+```bash
+PATCH /licenses/{uuid}/cancel
+Content-Type: application/json
+```
+
 ## Testing
 
 Run the test suite:
@@ -130,7 +160,7 @@ php artisan test tests/Feature/Api/V1/Brand/
 ## User Stories Implemented
 
 - ✅ **US1**: Brand can provision a license
-- 🔄 **US2**: Brand can change license lifecycle (designed)
+- ✅ **US2**: Brand can change license lifecycle
 - 🔄 **US3**: End-user product can activate a license (designed)
 - 🔄 **US4**: User can check license status (designed)
 - 🔄 **US5**: End-user product or customer can deactivate a seat (designed)

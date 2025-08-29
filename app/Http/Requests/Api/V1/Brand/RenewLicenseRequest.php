@@ -11,7 +11,7 @@ class RenewLicenseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // TODO: Implement brand authentication
+        // TODO: Implement brand authentication via Bearer token
         return true;
     }
 
@@ -23,19 +23,21 @@ class RenewLicenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'expires_at' => 'required|date|after:now',
+            'days' => 'nullable|integer|min:1|max:3650', // Max 10 years
         ];
     }
 
     /**
      * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'expires_at.required' => 'New expiration date is required.',
-            'expires_at.date' => 'Expiration date must be a valid date.',
-            'expires_at.after' => 'Expiration date must be in the future.',
+            'days.integer' => 'Days must be a whole number.',
+            'days.min' => 'Days must be at least 1.',
+            'days.max' => 'Days cannot exceed 3650 (10 years).',
         ];
     }
 }

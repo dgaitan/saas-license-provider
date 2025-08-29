@@ -178,23 +178,31 @@ curl -X POST http://localhost:8000/api/v1/licenses \
   }'
 ```
 
-### 🔄 US2: Brand can change license lifecycle (DESIGNED)
+### ✅ US2: Brand can change license lifecycle - FULLY IMPLEMENTED
 
-**Status**: 🔄 **DESIGNED ONLY**
+**Status**: ✅ **FULLY IMPLEMENTED**
 
-**Planned Implementation**:
-- **License Renewal**: Extend expiration date
-- **License Suspension**: Temporarily disable
+**Implementation**:
+- **License Renewal**: Extend expiration date by specified days
+- **License Suspension**: Temporarily disable license
 - **License Resumption**: Re-enable suspended license
-- **License Cancellation**: Permanently disable
+- **License Cancellation**: Permanently disable license
 
-**API Endpoints (Planned)**:
+**API Endpoints**:
 ```
 PATCH /api/v1/licenses/{uuid}/renew
 PATCH /api/v1/licenses/{uuid}/suspend
 PATCH /api/v1/licenses/{uuid}/resume
 PATCH /api/v1/licenses/{uuid}/cancel
 ```
+
+**Features**:
+- ✅ Form Request validation (`RenewLicenseRequest`)
+- ✅ Service layer implementation (`LicenseService`)
+- ✅ Controller methods with proper error handling
+- ✅ Comprehensive test coverage (10 tests, 89 assertions)
+- ✅ Status transitions with proper validation
+- ✅ Brand ownership verification
 
 ### 🔄 US3: End-user product can activate a license (DESIGNED)
 

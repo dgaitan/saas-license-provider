@@ -55,9 +55,9 @@ class LicenseService
     /**
      * Renew a license by extending its expiration date.
      */
-    public function renewLicense(License $license, string $newExpiresAt): License
+    public function renewLicense(License $license, int $days = 365): License
     {
-        $license->renew($newExpiresAt);
+        $license->renew($days);
         return $license->fresh(['licenseKey', 'product']);
     }
 
@@ -96,7 +96,7 @@ class LicenseService
         return License::whereHas('licenseKey', function ($query) use ($brand) {
             $query->where('brand_id', $brand->id);
         })
-            ->with(['licenseKey', 'product'])
-            ->get();
+        ->with(['licenseKey', 'product'])
+        ->get();
     }
 }
