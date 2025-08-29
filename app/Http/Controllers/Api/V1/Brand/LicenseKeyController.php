@@ -6,10 +6,15 @@ use App\Http\Controllers\Api\V1\BaseApiController;
 use App\Http\Requests\Api\V1\Brand\StoreLicenseKeyRequest;
 use App\Models\Brand;
 use App\Models\LicenseKey;
+use App\Services\Api\V1\Brand\LicenseKeyService;
 use Illuminate\Http\JsonResponse;
 
 class LicenseKeyController extends BaseApiController
 {
+    public function __construct(
+        private LicenseKeyService $licenseKeyService
+    ) {}
+
     /**
      * Store a newly created license key.
      * 
@@ -20,12 +25,10 @@ class LicenseKeyController extends BaseApiController
         // TODO: Get brand from API key authentication
         $brand = Brand::first(); // Temporary for development
 
-        $licenseKey = LicenseKey::create([
-            'brand_id' => $brand->id,
-            'key' => LicenseKey::generateKey(),
-            'customer_email' => $request->validated('customer_email'),
-            'is_active' => true,
-        ]);
+        $licenseKey = $this->licenseKeyService->createLicenseKey(
+            $brand,
+            $request->validated('customer_email')
+        );
 
         return $this->successResponse(
             $licenseKey->toApiArray(),
@@ -39,8 +42,17 @@ class LicenseKeyController extends BaseApiController
      */
     public function show(LicenseKey $licenseKey): JsonResponse
     {
+        // TODO: Get brand from API key authentication and verify ownership
+        $brand = Brand::first(); // Temporary for development
+
+        $licenseKey = $this->licenseKeyService->findLicenseKeyByUuid($licenseKey->uuid, $brand);
+
+        if (!$licenseKey) {
+            return $this->errorResponse('License key not found', 404);
+        }
+
         return $this->successResponse(
-            $licenseKey->load(['licenses.product'])->toApiArray(),
+            $licenseKey->toApiArray(),
             'License key retrieved successfully'
         );
     }
