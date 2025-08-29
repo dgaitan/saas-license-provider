@@ -71,9 +71,9 @@ class LicenseController extends BaseApiController
     {
         // TODO: Get brand from API key authentication and verify ownership
         $brand = Brand::first(); // Temporary for development
-        
+
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
-        
+
         if (!$license) {
             return $this->errorResponse('License not found', 404);
         }
@@ -96,9 +96,9 @@ class LicenseController extends BaseApiController
     {
         // TODO: Get brand from API key authentication and verify ownership
         $brand = Brand::first(); // Temporary for development
-        
+
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
-        
+
         if (!$license) {
             return $this->errorResponse('License not found', 404);
         }
@@ -120,9 +120,9 @@ class LicenseController extends BaseApiController
     {
         // TODO: Get brand from API key authentication and verify ownership
         $brand = Brand::first(); // Temporary for development
-        
+
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
-        
+
         if (!$license) {
             return $this->errorResponse('License not found', 404);
         }
@@ -144,9 +144,9 @@ class LicenseController extends BaseApiController
     {
         // TODO: Get brand from API key authentication and verify ownership
         $brand = Brand::first(); // Temporary for development
-        
+
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
-        
+
         if (!$license) {
             return $this->errorResponse('License not found', 404);
         }
