@@ -221,11 +221,7 @@ describe('Model Relationships and Complex Scenarios', function () {
         Activation::factory()->active()->forLicense($license2)->create(['instance_id' => 'site3']);
         Activation::factory()->deactivated()->forLicense($license2)->create(['instance_id' => 'site4']);
 
-        Activation::factory()->active()->forLicense($license3)->createMany([
-            ['instance_id' => 'site5'],
-            ['instance_id' => 'site6'],
-            ['instance_id' => 'site7'],
-        ]);
+        // Don't create activations for license3 since it doesn't support seat management
 
         // Test total calculations
         expect($licenseKey->getTotalSeats())->toBe(8); // 5 + 3 + 0

@@ -77,4 +77,15 @@ class ProductFactory extends Factory
             'brand_id' => $brand->id,
         ]);
     }
+
+    /**
+     * Create a product with a specific name.
+     */
+    public function withName(string $name): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'name' => $name,
+            'slug' => \Illuminate\Support\Str::slug($name),
+        ]);
+    }
 }
