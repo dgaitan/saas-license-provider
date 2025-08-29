@@ -11,7 +11,7 @@ class StoreLicenseKeyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // TODO: Implement brand authentication
+        // TODO: Implement brand authentication via Bearer token
         return true;
     }
 

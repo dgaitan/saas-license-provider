@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api\V1\Brand;
 
 use App\Http\Controllers\Api\V1\BaseApiController;
+use App\Http\Requests\Api\V1\Brand\StoreLicenseRequest;
 use App\Models\Brand;
 use App\Models\License;
 use App\Models\LicenseKey;
 use App\Models\Product;
 use App\Enums\LicenseStatus;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class LicenseController extends BaseApiController
 {
@@ -18,25 +18,18 @@ class LicenseController extends BaseApiController
      * 
      * US1: Brand can provision a license
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreLicenseRequest $request): JsonResponse
     {
-        $request->validate([
-            'license_key_uuid' => 'required|string|exists:license_keys,uuid',
-            'product_uuid' => 'required|string|exists:products,uuid',
-            'expires_at' => 'nullable|date|after:now',
-            'max_seats' => 'nullable|integer|min:1',
-        ]);
-
         // TODO: Get brand from API key authentication
         $brand = Brand::first(); // Temporary for development
 
         // Verify license key belongs to brand
-        $licenseKey = LicenseKey::where('uuid', $request->license_key_uuid)
+        $licenseKey = LicenseKey::where('uuid', $request->validated('license_key_uuid'))
             ->where('brand_id', $brand->id)
             ->firstOrFail();
 
         // Verify product belongs to brand
-        $product = Product::where('uuid', $request->product_uuid)
+        $product = Product::where('uuid', $request->validated('product_uuid'))
             ->where('brand_id', $brand->id)
             ->firstOrFail();
 
@@ -44,8 +37,8 @@ class LicenseController extends BaseApiController
             'license_key_id' => $licenseKey->id,
             'product_id' => $product->id,
             'status' => LicenseStatus::VALID,
-            'expires_at' => $request->expires_at,
-            'max_seats' => $request->max_seats,
+            'expires_at' => $request->validated('expires_at'),
+            'max_seats' => $request->validated('max_seats'),
         ]);
 
         return $this->successResponse(

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\V1\Brand;
 
 use App\Http\Controllers\Api\V1\BaseApiController;
+use App\Http\Requests\Api\V1\Brand\StoreLicenseKeyRequest;
 use App\Models\Brand;
 use App\Models\LicenseKey;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class LicenseKeyController extends BaseApiController
 {
@@ -15,19 +15,15 @@ class LicenseKeyController extends BaseApiController
      * 
      * US1: Brand can provision a license
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreLicenseKeyRequest $request): JsonResponse
     {
-        $request->validate([
-            'customer_email' => 'required|email|max:255',
-        ]);
-
         // TODO: Get brand from API key authentication
         $brand = Brand::first(); // Temporary for development
 
         $licenseKey = LicenseKey::create([
             'brand_id' => $brand->id,
             'key' => LicenseKey::generateKey(),
-            'customer_email' => $request->customer_email,
+            'customer_email' => $request->validated('customer_email'),
             'is_active' => true,
         ]);
 
