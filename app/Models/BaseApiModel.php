@@ -23,13 +23,7 @@ abstract class BaseApiModel extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Get the model's API representation.
-     */
-    public function toApiArray(): array
-    {
-        return $this->toArray();
-    }
+
 
     /**
      * Scope to get active records.

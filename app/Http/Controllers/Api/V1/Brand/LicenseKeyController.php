@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Brand;
 
 use App\Http\Controllers\Api\V1\BaseApiController;
 use App\Http\Requests\Api\V1\Brand\StoreLicenseKeyRequest;
+use App\Http\Resources\Api\V1\LicenseKeyResource;
 use App\Models\Brand;
 use App\Models\LicenseKey;
 use App\Services\Api\V1\Brand\LicenseKeyService;
@@ -31,7 +32,7 @@ class LicenseKeyController extends BaseApiController
         );
 
         return $this->successResponse(
-            $licenseKey->toApiArray(),
+            new LicenseKeyResource($licenseKey),
             'License key created successfully',
             201
         );
@@ -52,7 +53,7 @@ class LicenseKeyController extends BaseApiController
         }
 
         return $this->successResponse(
-            $licenseKey->toApiArray(),
+            new LicenseKeyResource($licenseKey),
             'License key retrieved successfully'
         );
     }
