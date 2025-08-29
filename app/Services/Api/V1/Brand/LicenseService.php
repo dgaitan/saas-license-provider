@@ -2,11 +2,11 @@
 
 namespace App\Services\Api\V1\Brand;
 
+use App\Enums\LicenseStatus;
 use App\Models\Brand;
 use App\Models\License;
 use App\Models\LicenseKey;
 use App\Models\Product;
-use App\Enums\LicenseStatus;
 
 class LicenseService
 {
@@ -55,9 +55,10 @@ class LicenseService
     /**
      * Renew a license by extending its expiration date.
      */
-    public function renewLicense(License $license, string $newExpiresAt): License
+    public function renewLicense(License $license, int $days = 365): License
     {
-        $license->renew($newExpiresAt);
+        $license->renew($days);
+
         return $license->fresh(['licenseKey', 'product']);
     }
 
@@ -67,6 +68,7 @@ class LicenseService
     public function suspendLicense(License $license): License
     {
         $license->suspend();
+
         return $license->fresh(['licenseKey', 'product']);
     }
 
@@ -76,6 +78,7 @@ class LicenseService
     public function resumeLicense(License $license): License
     {
         $license->resume();
+
         return $license->fresh(['licenseKey', 'product']);
     }
 
@@ -85,6 +88,7 @@ class LicenseService
     public function cancelLicense(License $license): License
     {
         $license->cancel();
+
         return $license->fresh(['licenseKey', 'product']);
     }
 

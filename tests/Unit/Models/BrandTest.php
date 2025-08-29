@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Brand;
-use App\Models\Product;
 use App\Models\LicenseKey;
+use App\Models\Product;
 
 beforeEach(function () {
     $this->brand = Brand::factory()->create();
@@ -71,7 +71,7 @@ describe('Brand Model', function () {
         $brand = Brand::factory()->create();
 
         // Should fail when trying to create another brand with same slug
-        expect(fn() => Brand::factory()->withName($brand->name)->create())
+        expect(fn () => Brand::factory()->withName($brand->name)->create())
             ->toThrow(Illuminate\Database\QueryException::class);
     });
 });

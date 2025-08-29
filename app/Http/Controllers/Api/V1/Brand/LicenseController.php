@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Brand;
 
 use App\Http\Controllers\Api\V1\BaseApiController;
+use App\Http\Requests\Api\V1\Brand\RenewLicenseRequest;
 use App\Http\Requests\Api\V1\Brand\StoreLicenseRequest;
 use App\Http\Resources\Api\V1\LicenseResource;
 use App\Models\Brand;
@@ -18,7 +19,7 @@ class LicenseController extends BaseApiController
 
     /**
      * Store a newly created license.
-     * 
+     *
      * US1: Brand can provision a license
      */
     public function store(StoreLicenseRequest $request): JsonResponse
@@ -51,13 +52,110 @@ class LicenseController extends BaseApiController
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
-        if (!$license) {
+        if (! $license) {
             return $this->errorResponse('License not found', 404);
         }
 
         return $this->successResponse(
             new LicenseResource($license),
             'License retrieved successfully'
+        );
+    }
+
+    /**
+     * Renew a license by extending its expiration date.
+     *
+     * US2: Brand can change license lifecycle
+     */
+    public function renew(RenewLicenseRequest $request, License $license): JsonResponse
+    {
+        // TODO: Get brand from API key authentication and verify ownership
+        $brand = Brand::first(); // Temporary for development
+
+        $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
+
+        if (! $license) {
+            return $this->errorResponse('License not found', 404);
+        }
+
+        $days = $request->validated('days') ?? 365;
+        $license = $this->licenseService->renewLicense($license, $days);
+
+        return $this->successResponse(
+            new LicenseResource($license),
+            'License renewed successfully'
+        );
+    }
+
+    /**
+     * Suspend a license.
+     *
+     * US2: Brand can change license lifecycle
+     */
+    public function suspend(License $license): JsonResponse
+    {
+        // TODO: Get brand from API key authentication and verify ownership
+        $brand = Brand::first(); // Temporary for development
+
+        $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
+
+        if (! $license) {
+            return $this->errorResponse('License not found', 404);
+        }
+
+        $license = $this->licenseService->suspendLicense($license);
+
+        return $this->successResponse(
+            new LicenseResource($license),
+            'License suspended successfully'
+        );
+    }
+
+    /**
+     * Resume a suspended license.
+     *
+     * US2: Brand can change license lifecycle
+     */
+    public function resume(License $license): JsonResponse
+    {
+        // TODO: Get brand from API key authentication and verify ownership
+        $brand = Brand::first(); // Temporary for development
+
+        $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
+
+        if (! $license) {
+            return $this->errorResponse('License not found', 404);
+        }
+
+        $license = $this->licenseService->resumeLicense($license);
+
+        return $this->successResponse(
+            new LicenseResource($license),
+            'License resumed successfully'
+        );
+    }
+
+    /**
+     * Cancel a license.
+     *
+     * US2: Brand can change license lifecycle
+     */
+    public function cancel(License $license): JsonResponse
+    {
+        // TODO: Get brand from API key authentication and verify ownership
+        $brand = Brand::first(); // Temporary for development
+
+        $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
+
+        if (! $license) {
+            return $this->errorResponse('License not found', 404);
+        }
+
+        $license = $this->licenseService->cancelLicense($license);
+
+        return $this->successResponse(
+            new LicenseResource($license),
+            'License cancelled successfully'
         );
     }
 }

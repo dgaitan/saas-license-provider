@@ -1,0 +1,21 @@
+parameters:
+    level: 4
+    paths:
+        - app
+    excludePaths:
+        - app/Console/Kernel.php (?)
+        - app/Exceptions/Handler.php
+        - app/Http/Kernel.php (?)
+        - app/Providers/AppServiceProvider.php
+        - app/Providers/AuthServiceProvider.php (?)
+        - app/Providers/EventServiceProvider.php (?)
+        - app/Providers/RouteServiceProvider.php (?)
+    ignoreErrors:
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::#'
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model::#'
+        - '#Call to an undefined method Illuminate\\Database\\Query\\Builder::#'
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Factories\\Factory::#'
+        - '#Call to an undefined static method App\\Models\\.*::#'
+        - '#Access to an undefined property PHPUnit\\Framework\\TestCase::#'
+        - '#Unable to resolve the template type TValue in call to function expect#'
+    reportUnmatchedIgnoredErrors: false

@@ -1,9 +1,8 @@
 <?php
 
 use App\Models\Brand;
-use App\Models\LicenseKey;
 use App\Models\License;
-use App\Enums\LicenseStatus;
+use App\Models\LicenseKey;
 
 beforeEach(function () {
     $this->brand = Brand::factory()->create();
@@ -106,7 +105,7 @@ describe('LicenseKey Model', function () {
         $licenseKey = LicenseKey::factory()->create();
 
         // Should fail when trying to create another license key with same key
-        expect(fn() => LicenseKey::factory()->state(['key' => $licenseKey->key])->create())
+        expect(fn () => LicenseKey::factory()->state(['key' => $licenseKey->key])->create())
             ->toThrow(Illuminate\Database\QueryException::class);
     });
 });

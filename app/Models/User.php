@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notifiable;
 
 /**
  * User model representing customers in the license service.
- * 
+ *
  * @property int $id
  * @property string $name
  * @property string $email
@@ -20,13 +20,13 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $remember_token
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * 
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LicenseKey> $licenseKeys
  */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory;
+    use Notifiable;
 
     /**
      * The attributes that are mass assignable.

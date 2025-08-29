@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * License model representing individual licenses associated with products.
- * 
+ *
  * @property int $id
  * @property int $license_key_id
  * @property int $product_id
@@ -17,14 +17,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $max_seats
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * 
  * @property-read \App\Models\LicenseKey $licenseKey
  * @property-read \App\Models\Product $product
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Activation> $activations
  */
 class License extends BaseApiModel
 {
-
     /**
      * The attributes that are mass assignable.
      *
@@ -111,7 +109,7 @@ class License extends BaseApiModel
      */
     public function getRemainingSeats(): int
     {
-        if (!$this->supportsSeats()) {
+        if (! $this->supportsSeats()) {
             return 0;
         }
 
@@ -123,7 +121,7 @@ class License extends BaseApiModel
      */
     public function hasAvailableSeats(): bool
     {
-        if (!$this->supportsSeats()) {
+        if (! $this->supportsSeats()) {
             return true;
         }
 

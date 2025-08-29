@@ -25,12 +25,12 @@ class BrandFactory extends Factory
      */
     public function definition(): array
     {
-        $name = 'Brand ' . $this->faker->unique()->numberBetween(1, 1000);
+        $name = 'Brand '.$this->faker->unique()->numberBetween(1, 1000);
 
         return [
             'name' => $name,
             'slug' => Str::slug($name),
-            'domain' => 'example' . $this->faker->unique()->numberBetween(1, 1000) . '.com',
+            'domain' => 'example'.$this->faker->unique()->numberBetween(1, 1000).'.com',
             'api_key' => Brand::generateApiKey(),
             'is_active' => true,
         ];
@@ -41,7 +41,7 @@ class BrandFactory extends Factory
      */
     public function inactive(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'is_active' => false,
         ]);
     }
@@ -51,7 +51,7 @@ class BrandFactory extends Factory
      */
     public function withName(string $name): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'name' => $name,
             'slug' => Str::slug($name),
         ]);

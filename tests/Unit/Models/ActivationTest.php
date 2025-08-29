@@ -1,11 +1,11 @@
 <?php
 
-use App\Models\Brand;
-use App\Models\Product;
-use App\Models\LicenseKey;
-use App\Models\License;
-use App\Models\Activation;
 use App\Enums\ActivationStatus;
+use App\Models\Activation;
+use App\Models\Brand;
+use App\Models\License;
+use App\Models\LicenseKey;
+use App\Models\Product;
 
 beforeEach(function () {
     $this->brand = Brand::factory()->create();
@@ -150,7 +150,7 @@ describe('Activation Model', function () {
         Activation::factory()->forInstance($instanceId)->forLicense($this->license)->create();
 
         // Should fail when trying to create another activation for same instance and license
-        expect(fn() => Activation::factory()->forInstance($instanceId)->forLicense($this->license)->create())
+        expect(fn () => Activation::factory()->forInstance($instanceId)->forLicense($this->license)->create())
             ->toThrow(Illuminate\Database\QueryException::class);
     });
 
