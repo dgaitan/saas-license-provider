@@ -97,6 +97,14 @@ class License extends BaseApiModel
     }
 
     /**
+     * Check if the license supports seat management.
+     */
+    public function supportsSeatManagement(): bool
+    {
+        return $this->supportsSeats();
+    }
+
+    /**
      * Get the number of used seats.
      */
     public function getUsedSeats(): int
@@ -114,6 +122,14 @@ class License extends BaseApiModel
         }
 
         return max(0, $this->max_seats - $this->getUsedSeats());
+    }
+
+    /**
+     * Get the number of available seats.
+     */
+    public function getAvailableSeats(): int
+    {
+        return $this->getRemainingSeats();
     }
 
     /**

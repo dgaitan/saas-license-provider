@@ -177,6 +177,39 @@ PATCH /licenses/{uuid}/cancel
 Content-Type: application/json
 ```
 
+#### License Activation (End-User Products)
+
+**Activate License**
+```bash
+POST /licenses/{uuid}/activate
+Content-Type: application/json
+
+{
+    "instance_id": "site-123",
+    "instance_type": "wordpress",
+    "instance_url": "https://example.com",
+    "machine_id": "machine-456"
+}
+```
+
+**Deactivate License**
+```bash
+POST /licenses/{uuid}/deactivate
+Content-Type: application/json
+
+{
+    "instance_id": "site-123",
+    "instance_type": "wordpress",
+    "instance_url": "https://example.com",
+    "machine_id": "machine-456"
+}
+```
+
+**Get Activation Status**
+```bash
+GET /licenses/{uuid}/activation-status?instance_id=site-123&instance_type=wordpress
+```
+
 ## Testing
 
 Run the test suite:
