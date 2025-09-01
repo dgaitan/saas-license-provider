@@ -35,6 +35,10 @@ class LicenseController extends BaseApiController
             $request->validated('max_seats')
         );
 
+        if (! $license) {
+            return $this->errorResponse('License key or product not found or does not belong to brand', 404);
+        }
+
         return $this->successResponse(
             new LicenseResource($license->load(['licenseKey', 'product'])),
             'License created successfully',

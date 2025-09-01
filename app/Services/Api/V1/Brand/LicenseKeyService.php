@@ -4,15 +4,21 @@ namespace App\Services\Api\V1\Brand;
 
 use App\Models\Brand;
 use App\Models\LicenseKey;
+use App\Repositories\Interfaces\LicenseKeyRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class LicenseKeyService
 {
+    public function __construct(
+        private readonly LicenseKeyRepositoryInterface $licenseKeyRepository
+    ) {}
+
     /**
      * Create a new license key for a customer.
      */
     public function createLicenseKey(Brand $brand, string $customerEmail): LicenseKey
     {
-        return LicenseKey::create([
+        return $this->licenseKeyRepository->create([
             'brand_id' => $brand->id,
             'key' => LicenseKey::generateKey(),
             'customer_email' => $customerEmail,
@@ -25,29 +31,28 @@ class LicenseKeyService
      */
     public function findLicenseKeyByUuid(string $uuid, Brand $brand): ?LicenseKey
     {
-        return LicenseKey::where('uuid', $uuid)
-            ->where('brand_id', $brand->id)
-            ->with(['licenses.product'])
-            ->first();
+        $licenseKey = $this->licenseKeyRepository->findByUuid($uuid);
+
+        if (! $licenseKey || $licenseKey->brand_id !== $brand->id) {
+            return null;
+        }
+
+        return $this->licenseKeyRepository->getWithLicenses($uuid);
     }
 
     /**
      * Get all license keys for a brand.
      */
-    public function getLicenseKeysForBrand(Brand $brand): \Illuminate\Database\Eloquent\Collection
+    public function getLicenseKeysForBrand(Brand $brand): Collection
     {
-        return LicenseKey::where('brand_id', $brand->id)
-            ->with(['licenses.product'])
-            ->get();
+        return $this->licenseKeyRepository->findByBrandId($brand->id);
     }
 
     /**
      * Get license keys by customer email across all brands.
      */
-    public function getLicenseKeysByCustomerEmail(string $customerEmail): \Illuminate\Database\Eloquent\Collection
+    public function getLicenseKeysByCustomerEmail(string $customerEmail): Collection
     {
-        return LicenseKey::where('customer_email', $customerEmail)
-            ->with(['licenses.product', 'brand'])
-            ->get();
+        return $this->licenseKeyRepository->findByCustomerEmail($customerEmail);
     }
 }

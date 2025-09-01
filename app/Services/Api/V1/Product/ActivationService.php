@@ -5,6 +5,7 @@ namespace App\Services\Api\V1\Product;
 use App\Enums\ActivationStatus;
 use App\Models\Activation;
 use App\Models\License;
+use App\Repositories\Interfaces\ActivationRepositoryInterface;
 
 /**
  * Service for handling license activation business logic.
@@ -13,6 +14,10 @@ use App\Models\License;
  */
 class ActivationService
 {
+    public function __construct(
+        private readonly ActivationRepositoryInterface $activationRepository
+    ) {}
+
     /**
      * Activate a license for a specific instance.
      *
@@ -45,7 +50,7 @@ class ActivationService
         }
 
         // Check if instance is already activated for this license
-        $existingActivation = $this->findExistingActivation(
+        $existingActivation = $this->activationRepository->findByLicenseAndInstance(
             $license,
             $instanceId,
             $instanceType,
@@ -65,7 +70,7 @@ class ActivationService
         }
 
         // Create new activation
-        $activation = Activation::create([
+        $activation = $this->activationRepository->create([
             'license_id' => $license->id,
             'instance_id' => $instanceId,
             'instance_type' => $instanceType,
@@ -96,7 +101,7 @@ class ActivationService
         ?string $instanceUrl = null,
         ?string $machineId = null
     ): Activation {
-        $activation = $this->findExistingActivation(
+        $activation = $this->activationRepository->findByLicenseAndInstance(
             $license,
             $instanceId,
             $instanceType,
@@ -133,50 +138,12 @@ class ActivationService
         ?string $instanceUrl = null,
         ?string $machineId = null
     ): ?Activation {
-        return $this->findExistingActivation(
+        return $this->activationRepository->findByLicenseAndInstance(
             $license,
             $instanceId,
             $instanceType,
             $instanceUrl,
             $machineId
         );
-    }
-
-    /**
-     * Find existing activation for the given parameters.
-     *
-     * @param  License  $license  The license
-     * @param  string|null  $instanceId  The instance identifier
-     * @param  string|null  $instanceType  The type of instance
-     * @param  string|null  $instanceUrl  The instance URL
-     * @param  string|null  $machineId  The machine ID
-     */
-    private function findExistingActivation(
-        License $license,
-        ?string $instanceId = null,
-        ?string $instanceType = null,
-        ?string $instanceUrl = null,
-        ?string $machineId = null
-    ): ?Activation {
-        $query = Activation::where('license_id', $license->id);
-
-        // Build the query based on available parameters
-        if ($instanceId) {
-            $query->where('instance_id', $instanceId);
-        }
-
-        if ($instanceType) {
-            $query->where('instance_type', $instanceType);
-        }
-
-        if ($instanceUrl) {
-            $query->where('instance_url', $instanceUrl);
-        }
-
-        if ($machineId) {
-            $query->where('machine_id', $machineId);
-        }
-
-        return $query->first();
     }
 }
