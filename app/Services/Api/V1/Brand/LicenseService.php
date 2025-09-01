@@ -5,11 +5,18 @@ namespace App\Services\Api\V1\Brand;
 use App\Enums\LicenseStatus;
 use App\Models\Brand;
 use App\Models\License;
-use App\Models\LicenseKey;
 use App\Models\Product;
+use App\Repositories\Interfaces\LicenseKeyRepositoryInterface;
+use App\Repositories\Interfaces\LicenseRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class LicenseService
 {
+    public function __construct(
+        private readonly LicenseRepositoryInterface $licenseRepository,
+        private readonly LicenseKeyRepositoryInterface $licenseKeyRepository
+    ) {}
+
     /**
      * Create a new license and associate it with a license key and product.
      */
@@ -19,18 +26,23 @@ class LicenseService
         string $productUuid,
         ?string $expiresAt = null,
         ?int $maxSeats = null
-    ): License {
+    ): ?License {
         // Verify license key belongs to brand
-        $licenseKey = LicenseKey::where('uuid', $licenseKeyUuid)
-            ->where('brand_id', $brand->id)
-            ->firstOrFail();
+        $licenseKey = $this->licenseKeyRepository->findByUuid($licenseKeyUuid);
+        if (! $licenseKey || $licenseKey->brand_id !== $brand->id) {
+            return null;
+        }
 
         // Verify product belongs to brand
         $product = Product::where('uuid', $productUuid)
             ->where('brand_id', $brand->id)
-            ->firstOrFail();
+            ->first();
 
-        return License::create([
+        if (! $product) {
+            return null;
+        }
+
+        return $this->licenseRepository->create([
             'license_key_id' => $licenseKey->id,
             'product_id' => $product->id,
             'status' => LicenseStatus::VALID,
@@ -44,12 +56,19 @@ class LicenseService
      */
     public function findLicenseByUuid(string $uuid, Brand $brand): ?License
     {
-        return License::where('uuid', $uuid)
-            ->whereHas('licenseKey', function ($query) use ($brand) {
-                $query->where('brand_id', $brand->id);
-            })
-            ->with(['licenseKey', 'product'])
-            ->first();
+        $license = $this->licenseRepository->findByUuid($uuid);
+
+        if (! $license) {
+            return null;
+        }
+
+        // Verify brand ownership
+        $licenseKey = $this->licenseKeyRepository->findByUuid($license->licenseKey->uuid);
+        if (! $licenseKey || $licenseKey->brand_id !== $brand->id) {
+            return null;
+        }
+
+        return $this->licenseRepository->getWithRelationships($uuid);
     }
 
     /**
@@ -95,12 +114,8 @@ class LicenseService
     /**
      * Get all licenses for a brand.
      */
-    public function getLicensesForBrand(Brand $brand): \Illuminate\Database\Eloquent\Collection
+    public function getLicensesForBrand(Brand $brand): Collection
     {
-        return License::whereHas('licenseKey', function ($query) use ($brand) {
-            $query->where('brand_id', $brand->id);
-        })
-            ->with(['licenseKey', 'product'])
-            ->get();
+        return $this->licenseRepository->findByBrandId($brand->id);
     }
 }

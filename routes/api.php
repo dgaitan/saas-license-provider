@@ -20,7 +20,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // API v1 routes - Force JSON responses for all API endpoints
 Route::prefix('v1')->middleware(['force.json'])->group(function () {
-    // Brand-facing APIs for license provisioning (US1)
+    // Brand-facing APIs for license provisioning (US1 & US2)
     Route::controller(App\Http\Controllers\Api\V1\Brand\LicenseKeyController::class)->group(function () {
         Route::post('/license-keys', 'store');
         Route::get('/license-keys/{licenseKey}', 'show');
@@ -33,5 +33,12 @@ Route::prefix('v1')->middleware(['force.json'])->group(function () {
         Route::patch('/licenses/{license}/suspend', 'suspend');
         Route::patch('/licenses/{license}/resume', 'resume');
         Route::patch('/licenses/{license}/cancel', 'cancel');
+    });
+
+    // Product-facing APIs for license activation (US3 & US5)
+    Route::controller(App\Http\Controllers\Api\V1\Product\ActivationController::class)->group(function () {
+        Route::post('/licenses/{license}/activate', 'activate');
+        Route::post('/licenses/{license}/deactivate', 'deactivate');
+        Route::get('/licenses/{license}/activation-status', 'status');
     });
 });

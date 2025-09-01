@@ -204,15 +204,57 @@ PATCH /api/v1/licenses/{uuid}/cancel
 - ✅ Status transitions with proper validation
 - ✅ Brand ownership verification
 
-### 🔄 US3: End-user product can activate a license (DESIGNED)
+### ✅ US3: End-user product can activate a license - FULLY IMPLEMENTED
 
-**Status**: 🔄 **DESIGNED ONLY**
+**Status**: ✅ **FULLY IMPLEMENTED**
 
-**Planned Implementation**:
-- **Activation Creation**: `POST /api/v1/activations`
-- **Seat Enforcement**: Check against `max_seats` limit
-- **Instance Tracking**: Track activation by instance ID
-- **Duplicate Prevention**: Prevent multiple activations for same instance
+**Implementation Details**:
+- **License Activation**: `POST /api/v1/licenses/{uuid}/activate`
+- **License Deactivation**: `POST /api/v1/licenses/{uuid}/deactivate`
+- **Activation Status**: `GET /api/v1/licenses/{uuid}/activation-status`
+- **Seat Enforcement**: Automatic seat limit checking and consumption
+- **Instance Tracking**: Support for multiple instance types (WordPress, machine, CLI, app)
+
+**Features**:
+- ✅ Instance-based activation tracking
+- ✅ Seat limit enforcement with validation
+- ✅ Multiple instance types supported (wordpress, machine, cli, app)
+- ✅ Reactivation of existing instances
+- ✅ Comprehensive validation and error handling
+- ✅ Product-facing API design
+- ✅ Service layer implementation (`ActivationService`)
+- ✅ Form Request validation (`ActivateLicenseRequest`, `DeactivateLicenseRequest`)
+
+**API Endpoints**:
+```
+POST /api/v1/licenses/{uuid}/activate
+POST /api/v1/licenses/{uuid}/deactivate
+GET /api/v1/licenses/{uuid}/activation-status
+```
+
+**Example Workflow**:
+```bash
+# 1. Activate license for WordPress site
+curl -X POST http://localhost:8002/api/v1/licenses/{license-uuid}/activate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "instance_id": "site-123",
+    "instance_type": "wordpress",
+    "instance_url": "https://example.com",
+    "machine_id": "machine-456"
+  }'
+
+# 2. Check activation status
+curl -X GET "http://localhost:8002/api/v1/licenses/{license-uuid}/activation-status?instance_id=site-123&instance_type=wordpress"
+
+# 3. Deactivate license
+curl -X POST http://localhost:8002/api/v1/licenses/{license-uuid}/deactivate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "instance_id": "site-123",
+    "instance_type": "wordpress"
+  }'
+```
 
 ### 🔄 US4: User can check license status (DESIGNED)
 
