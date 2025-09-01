@@ -5,16 +5,13 @@ namespace App\Repositories;
 use App\Models\LicenseKey;
 use App\Repositories\Interfaces\LicenseKeyRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
-class LicenseKeyRepository implements LicenseKeyRepositoryInterface
+class LicenseKeyRepository extends BaseRepository implements LicenseKeyRepositoryInterface
 {
-    public function __construct(
-        private readonly LicenseKey $model
-    ) {}
-
-    public function findByUuid(string $uuid): ?LicenseKey
+    protected function getModel(): Model
     {
-        return $this->model->where('uuid', $uuid)->first();
+        return new LicenseKey;
     }
 
     public function findByKey(string $key): ?LicenseKey
@@ -30,26 +27,6 @@ class LicenseKeyRepository implements LicenseKeyRepositoryInterface
     public function findByBrandId(int $brandId): Collection
     {
         return $this->model->where('brand_id', $brandId)->get();
-    }
-
-    public function create(array $data): LicenseKey
-    {
-        return $this->model->create($data);
-    }
-
-    public function update(LicenseKey $licenseKey, array $data): bool
-    {
-        return $licenseKey->update($data);
-    }
-
-    public function delete(LicenseKey $licenseKey): bool
-    {
-        return $licenseKey->delete();
-    }
-
-    public function getActive(): Collection
-    {
-        return $this->model->where('is_active', true)->get();
     }
 
     public function getWithLicenses(string $uuid): ?LicenseKey

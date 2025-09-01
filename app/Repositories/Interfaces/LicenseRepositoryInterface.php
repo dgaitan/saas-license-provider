@@ -5,13 +5,8 @@ namespace App\Repositories\Interfaces;
 use App\Models\License;
 use Illuminate\Database\Eloquent\Collection;
 
-interface LicenseRepositoryInterface
+interface LicenseRepositoryInterface extends BaseRepositoryInterface
 {
-    /**
-     * Find a license by UUID.
-     */
-    public function findByUuid(string $uuid): ?License;
-
     /**
      * Find licenses by license key ID.
      */
@@ -26,26 +21,6 @@ interface LicenseRepositoryInterface
      * Find licenses by brand ID.
      */
     public function findByBrandId(int $brandId): Collection;
-
-    /**
-     * Create a new license.
-     */
-    public function create(array $data): License;
-
-    /**
-     * Update a license.
-     */
-    public function update(License $license, array $data): bool;
-
-    /**
-     * Delete a license.
-     */
-    public function delete(License $license): bool;
-
-    /**
-     * Get active licenses.
-     */
-    public function getActive(): Collection;
 
     /**
      * Get licenses with their relationships loaded.

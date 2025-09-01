@@ -6,13 +6,8 @@ use App\Models\Activation;
 use App\Models\License;
 use Illuminate\Database\Eloquent\Collection;
 
-interface ActivationRepositoryInterface
+interface ActivationRepositoryInterface extends BaseRepositoryInterface
 {
-    /**
-     * Find an activation by UUID.
-     */
-    public function findByUuid(string $uuid): ?Activation;
-
     /**
      * Find activations by license ID.
      */
@@ -33,26 +28,6 @@ interface ActivationRepositoryInterface
         ?string $instanceUrl = null,
         ?string $machineId = null
     ): ?Activation;
-
-    /**
-     * Create a new activation.
-     */
-    public function create(array $data): Activation;
-
-    /**
-     * Update an activation.
-     */
-    public function update(Activation $activation, array $data): bool;
-
-    /**
-     * Delete an activation.
-     */
-    public function delete(Activation $activation): bool;
-
-    /**
-     * Get active activations.
-     */
-    public function getActive(): Collection;
 
     /**
      * Count active activations for a license.

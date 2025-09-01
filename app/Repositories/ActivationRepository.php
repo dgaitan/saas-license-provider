@@ -6,16 +6,13 @@ use App\Models\Activation;
 use App\Models\License;
 use App\Repositories\Interfaces\ActivationRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
-class ActivationRepository implements ActivationRepositoryInterface
+class ActivationRepository extends BaseRepository implements ActivationRepositoryInterface
 {
-    public function __construct(
-        private readonly Activation $model
-    ) {}
-
-    public function findByUuid(string $uuid): ?Activation
+    protected function getModel(): Model
     {
-        return $this->model->where('uuid', $uuid)->first();
+        return new Activation;
     }
 
     public function findByLicenseId(int $licenseId): Collection
@@ -56,21 +53,6 @@ class ActivationRepository implements ActivationRepositoryInterface
         }
 
         return $query->first();
-    }
-
-    public function create(array $data): Activation
-    {
-        return $this->model->create($data);
-    }
-
-    public function update(Activation $activation, array $data): bool
-    {
-        return $activation->update($data);
-    }
-
-    public function delete(Activation $activation): bool
-    {
-        return $activation->delete();
     }
 
     public function getActive(): Collection
