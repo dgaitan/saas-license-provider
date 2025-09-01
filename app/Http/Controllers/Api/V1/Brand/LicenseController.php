@@ -10,6 +10,7 @@ use App\Models\Brand;
 use App\Models\License;
 use App\Services\Api\V1\Brand\LicenseService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class LicenseController extends BaseApiController
 {
@@ -24,8 +25,7 @@ class LicenseController extends BaseApiController
      */
     public function store(StoreLicenseRequest $request): JsonResponse
     {
-        // TODO: Get brand from API key authentication
-        $brand = Brand::first(); // Temporary for development
+        $brand = $this->getAuthenticatedBrand($request);
 
         $license = $this->licenseService->createLicense(
             $brand,
@@ -49,10 +49,9 @@ class LicenseController extends BaseApiController
     /**
      * Display the specified license.
      */
-    public function show(License $license): JsonResponse
+    public function show(Request $request, License $license): JsonResponse
     {
-        // TODO: Get brand from API key authentication and verify ownership
-        $brand = Brand::first(); // Temporary for development
+        $brand = $this->getAuthenticatedBrand($request);
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
@@ -73,8 +72,7 @@ class LicenseController extends BaseApiController
      */
     public function renew(RenewLicenseRequest $request, License $license): JsonResponse
     {
-        // TODO: Get brand from API key authentication and verify ownership
-        $brand = Brand::first(); // Temporary for development
+        $brand = $this->getAuthenticatedBrand($request);
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
@@ -96,10 +94,9 @@ class LicenseController extends BaseApiController
      *
      * US2: Brand can change license lifecycle
      */
-    public function suspend(License $license): JsonResponse
+    public function suspend(Request $request, License $license): JsonResponse
     {
-        // TODO: Get brand from API key authentication and verify ownership
-        $brand = Brand::first(); // Temporary for development
+        $brand = $this->getAuthenticatedBrand($request);
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
@@ -120,10 +117,9 @@ class LicenseController extends BaseApiController
      *
      * US2: Brand can change license lifecycle
      */
-    public function resume(License $license): JsonResponse
+    public function resume(Request $request, License $license): JsonResponse
     {
-        // TODO: Get brand from API key authentication and verify ownership
-        $brand = Brand::first(); // Temporary for development
+        $brand = $this->getAuthenticatedBrand($request);
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 
@@ -144,10 +140,9 @@ class LicenseController extends BaseApiController
      *
      * US2: Brand can change license lifecycle
      */
-    public function cancel(License $license): JsonResponse
+    public function cancel(Request $request, License $license): JsonResponse
     {
-        // TODO: Get brand from API key authentication and verify ownership
-        $brand = Brand::first(); // Temporary for development
+        $brand = $this->getAuthenticatedBrand($request);
 
         $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
 

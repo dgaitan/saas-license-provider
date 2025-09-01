@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\LicenseKey;
 use App\Services\Api\V1\Brand\LicenseKeyService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class LicenseKeyController extends BaseApiController
 {
@@ -23,8 +24,7 @@ class LicenseKeyController extends BaseApiController
      */
     public function store(StoreLicenseKeyRequest $request): JsonResponse
     {
-        // TODO: Get brand from API key authentication
-        $brand = Brand::first(); // Temporary for development
+        $brand = $this->getAuthenticatedBrand($request);
 
         $licenseKey = $this->licenseKeyService->createLicenseKey(
             $brand,
@@ -41,10 +41,9 @@ class LicenseKeyController extends BaseApiController
     /**
      * Display the specified license key.
      */
-    public function show(LicenseKey $licenseKey): JsonResponse
+    public function show(Request $request, LicenseKey $licenseKey): JsonResponse
     {
-        // TODO: Get brand from API key authentication and verify ownership
-        $brand = Brand::first(); // Temporary for development
+        $brand = $this->getAuthenticatedBrand($request);
 
         $licenseKey = $this->licenseKeyService->findLicenseKeyByUuid($licenseKey->uuid, $brand);
 

@@ -5,6 +5,7 @@ use App\Models\Brand;
 use App\Models\License;
 use App\Models\LicenseKey;
 use App\Models\Product;
+use Tests\Feature\Api\V1\Brand\WithBrandAuthentication;
 
 beforeEach(function () {
     $this->brand = Brand::factory()->create();
@@ -12,9 +13,11 @@ beforeEach(function () {
     $this->licenseKey = LicenseKey::factory()->forBrand($this->brand)->create();
 });
 
+uses(WithBrandAuthentication::class);
+
 describe('License API - US1: Brand can provision a license', function () {
     it('can create a license and associate it with a license key and product', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $this->licenseKey->uuid,
             'product_uuid' => $this->product->uuid,
             'expires_at' => '2026-12-31',
@@ -58,7 +61,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('can create a license without expiration date', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $this->licenseKey->uuid,
             'product_uuid' => $this->product->uuid,
         ]);
@@ -73,7 +76,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('can create a license without seat management', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $this->licenseKey->uuid,
             'product_uuid' => $this->product->uuid,
             'expires_at' => '2026-12-31',
@@ -88,7 +91,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('validates license key UUID is required', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'product_uuid' => $this->product->uuid,
         ]);
 
@@ -97,7 +100,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('validates license key UUID exists', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => 'non-existent-uuid',
             'product_uuid' => $this->product->uuid,
         ]);
@@ -107,7 +110,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('validates product UUID is required', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $this->licenseKey->uuid,
         ]);
 
@@ -116,7 +119,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('validates product UUID exists', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $this->licenseKey->uuid,
             'product_uuid' => 'non-existent-uuid',
         ]);
@@ -126,7 +129,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('validates expiration date is in the future', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $this->licenseKey->uuid,
             'product_uuid' => $this->product->uuid,
             'expires_at' => '2020-01-01',
@@ -137,7 +140,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('validates max seats is a positive integer', function () {
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $this->licenseKey->uuid,
             'product_uuid' => $this->product->uuid,
             'max_seats' => 0,
@@ -153,7 +156,7 @@ describe('License API - US1: Brand can provision a license', function () {
             ->forProduct($this->product)
             ->create();
 
-        $response = $this->getJson("/api/v1/licenses/{$license->uuid}");
+        $response = $this->authenticatedGet("/api/v1/licenses/{$license->uuid}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -184,7 +187,7 @@ describe('License API - US1: Brand can provision a license', function () {
     });
 
     it('returns 404 for non-existent license', function () {
-        $response = $this->getJson('/api/v1/licenses/non-existent-uuid');
+        $response = $this->authenticatedGet('/api/v1/licenses/non-existent-uuid');
 
         $response->assertStatus(404);
     });
@@ -195,7 +198,7 @@ describe('License API - US1: Brand can provision a license', function () {
             ->forProduct($this->product)
             ->create();
 
-        $response = $this->getJson("/api/v1/licenses/{$license->uuid}");
+        $response = $this->authenticatedGet("/api/v1/licenses/{$license->uuid}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -220,7 +223,7 @@ describe('License API - US1: Brand can provision a license', function () {
         $otherBrand = Brand::factory()->create();
         $otherLicenseKey = LicenseKey::factory()->forBrand($otherBrand)->create();
 
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $otherLicenseKey->uuid,
             'product_uuid' => $this->product->uuid,
         ]);
@@ -232,7 +235,7 @@ describe('License API - US1: Brand can provision a license', function () {
         $otherBrand = Brand::factory()->create();
         $otherProduct = Product::factory()->forBrand($otherBrand)->create();
 
-        $response = $this->postJson('/api/v1/licenses', [
+        $response = $this->authenticatedPost('/api/v1/licenses', [
             'license_key_uuid' => $this->licenseKey->uuid,
             'product_uuid' => $otherProduct->uuid,
         ]);
