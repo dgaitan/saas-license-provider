@@ -92,7 +92,7 @@ class MultiTenancyService
 
         return LicenseKey::forBrand($brandId)
             ->where('customer_email', $email)
-            ->with(['licenses.product'])
+            ->with(['brand', 'licenses.product'])
             ->get();
     }
 

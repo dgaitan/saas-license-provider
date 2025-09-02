@@ -70,7 +70,7 @@ class CrossBrandController extends BaseApiController
                     'name' => $brand->name,
                     'slug' => $brand->slug,
                     'domain' => $brand->domain,
-                ]),
+                ])->values(),
                 'license_keys' => CustomerLicenseSummaryResource::collection($licenseKeys),
                 'licenses_summary' => [
                     'total_active' => $licenses->where('status', 'valid')->count(),
