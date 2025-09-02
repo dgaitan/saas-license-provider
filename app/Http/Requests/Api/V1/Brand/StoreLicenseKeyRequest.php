@@ -13,7 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * **Authentication Required**: This endpoint requires brand authentication using the `Authorization: Bearer {BRAND_API_KEY}` header.
  * The brand API key is automatically generated when a brand is created and can be found in the brands table.
  * 
- * @bodyParam customer_email string required The customer's email address. Must be a valid email format. Example: customer@example.com
+ * @bodyParam customer_email string required The customer's email address. Must be a valid email format and will be used to associate all licenses for this customer. Maximum 255 characters. Example: "customer@example.com" or "john.doe@company.org"
  */
 class StoreLicenseKeyRequest extends FormRequest
 {
@@ -52,6 +52,18 @@ class StoreLicenseKeyRequest extends FormRequest
             'customer_email.required' => 'Customer email is required.',
             'customer_email.email' => 'Customer email must be a valid email address.',
             'customer_email.max' => 'Customer email may not be greater than 255 characters.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'customer_email' => 'customer email',
         ];
     }
 }

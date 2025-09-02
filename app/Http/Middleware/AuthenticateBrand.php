@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Middleware to authenticate brands using their API tokens.
  *
- * This middleware extracts the Bearer token from the Authorization header
+ * This middleware extracts the Bearer token from the X-Tenant header
  * and validates it against the brand's API key. If valid, it sets the
  * authenticated brand in the request for use in controllers.
  */
@@ -31,7 +31,7 @@ class AuthenticateBrand
         if (! $token) {
             return response()->json([
                 'error' => 'Unauthorized',
-                'message' => 'Authorization header with Bearer token is required',
+                'message' => 'X-Tenat header with Brand Api Key token is required',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -51,16 +51,16 @@ class AuthenticateBrand
     }
 
     /**
-     * Extract the Bearer token from the Authorization header.
+     * Extract the Brand Api Key token from the X-Tenant header.
      *
      * @param  Request  $request  The request to extract the token from
      * @return string|null The extracted token or null if not found
      */
     private function extractTokenFromRequest(Request $request): ?string
     {
-        $authorization = $request->header('Authorization');
+        $authorization = $request->header('X-Tenant');
 
-        if (! $authorization || ! str_starts_with($authorization, 'Bearer ')) {
+        if (! $authorization) {
             return null;
         }
 

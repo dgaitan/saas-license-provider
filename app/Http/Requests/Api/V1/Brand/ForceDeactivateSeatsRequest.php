@@ -13,7 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * **Authentication Required**: This endpoint requires brand authentication using the `Authorization: Bearer {BRAND_API_KEY}` header.
  * The brand API key is automatically generated when a brand is created and can be found in the brands table.
  * 
- * @bodyParam reason string nullable The reason for force deactivation. Maximum 500 characters. Example: "Customer requested deactivation"
+ * @bodyParam reason string nullable The reason for force deactivation. This field helps track why seats were forcefully deactivated, which is useful for support, compliance, and audit purposes. Maximum 500 characters. Example: "Customer requested deactivation", "Policy violation detected", "Account suspended", "License expired", "Administrative action"
  */
 class ForceDeactivateSeatsRequest extends FormRequest
 {
@@ -51,6 +51,18 @@ class ForceDeactivateSeatsRequest extends FormRequest
         return [
             'reason.string' => 'Reason must be a string.',
             'reason.max' => 'Reason may not be greater than 500 characters.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'reason' => 'deactivation reason',
         ];
     }
 }

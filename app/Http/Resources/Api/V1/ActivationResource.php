@@ -8,18 +8,20 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * Activation Resource
  * 
- * Represents a license activation for a specific instance (site, machine, etc.)
+ * Represents a license activation for a specific instance (site, machine, etc.).
+ * This resource provides comprehensive information about license activations including
+ * status, timing, and associated license details.
  * 
- * @property int $id Database ID
- * @property string $uuid Unique identifier for the activation
- * @property string $instance_id Unique identifier for the instance (site URL, machine ID, etc.)
- * @property \App\Enums\ActivationStatus $status Current activation status
- * @property string $status_label Human-readable status label
- * @property \Carbon\Carbon|null $activated_at When the license was activated
- * @property \Carbon\Carbon|null $deactivated_at When the license was deactivated
- * @property \Carbon\Carbon $created_at When the activation record was created
- * @property \Carbon\Carbon $updated_at When the activation record was last updated
- * @property \App\Models\License|null $license The associated license (when loaded)
+ * @property int $id Database ID - Internal auto-incrementing identifier
+ * @property string $uuid Unique identifier for the activation - Used in API endpoints and external references
+ * @property string $instance_id Unique identifier for the instance (site URL, machine ID, etc.) - Must be unique within the license
+ * @property \App\Enums\ActivationStatus $status Current activation status - Controls whether the activation is consuming a seat
+ * @property string $status_label Human-readable status label - User-friendly status description
+ * @property \Carbon\Carbon|null $activated_at When the license was activated - ISO 8601 formatted timestamp
+ * @property \Carbon\Carbon|null $deactivated_at When the license was deactivated - ISO 8601 formatted timestamp, null if still active
+ * @property \Carbon\Carbon $created_at When the activation record was created - ISO 8601 formatted timestamp
+ * @property \Carbon\Carbon $updated_at When the activation record was last updated - ISO 8601 formatted timestamp
+ * @property \App\Models\License|null $license The associated license (when loaded) - Contains license details and product information
  */
 class ActivationResource extends JsonResource
 {

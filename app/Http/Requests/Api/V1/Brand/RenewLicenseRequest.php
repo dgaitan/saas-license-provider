@@ -13,7 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * **Authentication Required**: This endpoint requires brand authentication using the `Authorization: Bearer {BRAND_API_KEY}` header.
  * The brand API key is automatically generated when a brand is created and can be found in the brands table.
  * 
- * @bodyParam expires_at string required The new expiration date for the license. Must be a valid date in the future. Example: 2027-12-31
+ * @bodyParam expires_at string required The new expiration date for the license. Must be a valid date in the future. This will replace the current expiration date and extend the license validity period. Format: YYYY-MM-DD or ISO 8601 datetime. Example: "2027-12-31", "2027-12-31T23:59:59Z", "2028-01-01"
  */
 class RenewLicenseRequest extends FormRequest
 {
@@ -52,6 +52,18 @@ class RenewLicenseRequest extends FormRequest
             'expires_at.required' => 'Expiration date is required.',
             'expires_at.date' => 'Expiration date must be a valid date.',
             'expires_at.after' => 'Expiration date must be in the future.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'expires_at' => 'expiration date',
         ];
     }
 }

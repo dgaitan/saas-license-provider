@@ -13,8 +13,8 @@ use Illuminate\Foundation\Http\FormRequest;
  * **Authentication**: This endpoint does not require authentication. It is designed for end-user products
  * to deactivate licenses without needing to authenticate with the system.
  * 
- * @bodyParam instance_id string required The unique identifier for the instance to deactivate. Must match the instance_id used during activation. Example: "site-123"
- * @bodyParam reason string nullable The reason for deactivation (optional). Maximum 500 characters. Example: "Site migration completed"
+ * @bodyParam instance_id string required The unique identifier for the instance to deactivate. Must match the instance_id used during activation. This ID is used to identify which specific activation to deactivate and free up the associated seat. Maximum 255 characters. Example: "site-123", "machine-abc", "wordpress-site-1"
+ * @bodyParam reason string nullable The reason for deactivation (optional). This field helps track why the license was deactivated, which is useful for support and analytics purposes. Maximum 500 characters. Example: "Site migration completed", "Application uninstalled", "License transferred to new machine", "Temporary deactivation for maintenance"
  */
 class DeactivateLicenseRequest extends FormRequest
 {
@@ -56,6 +56,19 @@ class DeactivateLicenseRequest extends FormRequest
             'instance_id.max' => 'Instance ID may not be greater than 255 characters.',
             'reason.string' => 'Reason must be a string.',
             'reason.max' => 'Reason may not be greater than 500 characters.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'instance_id' => 'instance ID',
+            'reason' => 'deactivation reason',
         ];
     }
 }

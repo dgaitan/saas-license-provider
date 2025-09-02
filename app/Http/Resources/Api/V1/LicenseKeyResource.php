@@ -8,17 +8,19 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * License Key Resource
  * 
- * Represents a license key that can unlock multiple licenses for a customer
+ * Represents a license key that can unlock multiple licenses for a customer.
+ * This resource provides comprehensive information about license keys including
+ * customer details, status, and associated licenses.
  * 
- * @property int $id Database ID
- * @property string $uuid Unique identifier for the license key
- * @property string $key The actual license key string
- * @property string $customer_email Customer's email address
- * @property bool $is_active Whether the license key is currently active
- * @property \Carbon\Carbon $created_at When the license key was created
- * @property \Carbon\Carbon $updated_at When the license key was last updated
- * @property \App\Models\Brand|null $brand The associated brand (when loaded)
- * @property \Illuminate\Database\Eloquent\Collection|null $licenses Associated licenses (when loaded)
+ * @property int $id Database ID - Internal auto-incrementing identifier
+ * @property string $uuid Unique identifier for the license key - Used in API endpoints and external references
+ * @property string $key The actual license key string - Unique alphanumeric string used for license activation
+ * @property string $customer_email Customer's email address - Used to associate all licenses for this customer across brands
+ * @property bool $is_active Whether the license key is currently active - Controls whether the key can be used for new activations
+ * @property \Carbon\Carbon $created_at When the license key was created - ISO 8601 formatted timestamp
+ * @property \Carbon\Carbon $updated_at When the license key was last updated - ISO 8601 formatted timestamp
+ * @property \App\Models\Brand|null $brand The associated brand (when loaded) - Contains brand information and API key
+ * @property \Illuminate\Database\Eloquent\Collection|null $licenses Associated licenses (when loaded) - Contains all licenses associated with this key
  */
 class LicenseKeyResource extends JsonResource
 {
