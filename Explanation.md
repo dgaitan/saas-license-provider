@@ -72,6 +72,209 @@ Brand (Multi-tenant)
 - **Brand API Keys**: Each brand has unique API key
 - **Middleware**: Brand authentication and authorization
 
+#### Authorization System (IMPLEMENTED)
+
+The License Service implements a comprehensive authorization system using **Laravel Sanctum** for brand authentication and custom middleware for brand isolation.
+
+##### **Brand Authentication with Laravel Sanctum**
+
+**Implementation Details**:
+- **`HasApiTokens` Trait**: Added to Brand model for Sanctum integration
+- **API Key Generation**: Each brand has a unique, secure API key
+- **Token Creation**: Brands can generate Sanctum tokens for API access
+- **Secure Storage**: Tokens are hashed and stored securely in database
+
+**Brand Model Methods**:
+```php
+// Find brand by API key (for authentication)
+public static function findByApiKey(string $apiKey): ?self
+
+// Create Sanctum token for API access
+public function createBrandToken(string $name = 'brand-api'): string
+
+// Generate unique API key for new brands
+public static function generateApiKey(): string
+```
+
+##### **Custom Authentication Middleware**
+
+**`AuthenticateBrand` Middleware**:
+- **Token Extraction**: Extracts Bearer token from `Authorization` header
+- **Brand Validation**: Validates token against brand's API key
+- **Request Context**: Sets authenticated brand in request for multi-tenancy scoping
+- **Error Handling**: Returns proper 401 responses for invalid tokens
+
+**Middleware Implementation**:
+```php
+class AuthenticateBrand
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        $token = $this->extractTokenFromRequest($request);
+        $brand = Brand::findByApiKey($token);
+        
+        if (!$brand) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        // Set authenticated brand in request for multi-tenancy scoping
+        $request->merge(['authenticated_brand' => $brand]);
+        
+        return $next($request);
+    }
+}
+```
+
+##### **API Route Protection**
+
+**Brand-Facing APIs (Protected)**:
+```php
+Route::middleware(['auth.brand'])->group(function () {
+    // License Key Management
+    Route::controller(LicenseKeyController::class)->group(function () {
+        Route::post('/license-keys', 'store');     // Create license key
+        Route::get('/license-keys/{licenseKey}', 'show'); // Retrieve license key
+    });
+    
+    // License Management
+    Route::controller(LicenseController::class)->group(function () {
+        Route::post('/licenses', 'store');         // Create license
+        Route::get('/licenses/{license}', 'show'); // Retrieve license
+        Route::patch('/licenses/{license}/renew', 'renew'); // Renew license
+        Route::patch('/licenses/{license}/suspend', 'suspend'); // Suspend license
+        Route::patch('/licenses/{license}/resume', 'resume'); // Resume license
+        Route::patch('/licenses/{license}/cancel', 'cancel'); // Cancel license
+    });
+});
+```
+
+**Product-Facing APIs (Public)**:
+```php
+// No authentication required - public endpoints
+Route::controller(ActivationController::class)->group(function () {
+    Route::post('/licenses/{license}/activate', 'activate'); // Activate license
+    Route::post('/licenses/{license}/deactivate', 'deactivate'); // Deactivate license
+    Route::get('/licenses/{license}/activation-status', 'status'); // Check status
+});
+```
+
+##### **Multi-Tenancy Enforcement**
+
+**Global Scopes**:
+- **Automatic Brand Filtering**: All brand-scoped models automatically filter by authenticated brand
+- **Data Isolation**: Brands can only access their own data
+- **Query Scoping**: Automatic `WHERE brand_id = ?` in all queries
+
+**Brand Ownership Validation**:
+```php
+// In LicenseService
+public function createLicense(Brand $brand, string $licenseKeyUuid, string $productUuid): ?License
+{
+    // Verify license key belongs to brand
+    $licenseKey = $this->licenseKeyRepository->findByUuid($licenseKeyUuid);
+    if (!$licenseKey || $licenseKey->brand_id !== $brand->id) {
+        return null; // Brand doesn't own this license key
+    }
+    
+    // Verify product belongs to brand
+    $product = Product::where('uuid', $productUuid)
+        ->where('brand_id', $brand->id)
+        ->first();
+        
+    if (!$product) {
+        return null; // Brand doesn't own this product
+    }
+    
+    // Create license with proper brand isolation
+    return $this->licenseRepository->create([...]);
+}
+```
+
+##### **Security Features**
+
+**Token Security**:
+- **Secure Generation**: API keys use cryptographically secure random generation
+- **Hashing**: Sanctum tokens are properly hashed in database
+- **Expiration**: Tokens can be configured with expiration times
+- **Revocation**: Tokens can be revoked individually or in bulk
+
+**Request Validation**:
+- **Content-Type Enforcement**: All API responses are forced to JSON
+- **Input Sanitization**: Form Request classes validate and sanitize all input
+- **SQL Injection Prevention**: Eloquent ORM with parameter binding
+- **XSS Protection**: Proper output encoding in API responses
+
+**Error Handling**:
+- **Consistent Error Responses**: All errors return JSON with proper HTTP status codes
+- **No Information Leakage**: Error messages don't expose internal system details
+- **Audit Trail**: Failed authentication attempts are logged
+
+##### **Testing Authentication**
+
+**Test Traits**:
+- **`WithBrandAuthentication`**: Provides helper methods for authenticated requests
+- **Automatic Headers**: Automatically includes `Authorization: Bearer {token}` headers
+- **Brand Isolation Testing**: Verifies brands can only access their own data
+
+**Test Examples**:
+```php
+// Test brand can access their own resources
+$this->authenticatedPost('/api/v1/license-keys', [
+    'customer_email' => 'user@example.com'
+])->assertStatus(201);
+
+// Test brand cannot access other brand's resources
+$this->authenticatedPost('/api/v1/license-keys', [
+    'customer_email' => 'user@example.com'
+], $otherBrand)->assertStatus(404);
+```
+
+##### **API Key Management**
+
+**Brand Seeder Configuration**:
+```php
+// Predictable API keys for testing
+[
+    'name' => 'RankMath',
+    'api_key' => 'brand_rankmath_test_key_123456789',
+],
+[
+    'name' => 'WP Rocket',
+    'api_key' => 'brand_wprocket_test_key_123456789',
+]
+```
+
+**Production API Key Generation**:
+```php
+// Generate secure API key for new brands
+$brand = Brand::create([
+    'name' => 'New Brand',
+    'api_key' => Brand::generateApiKey(), // 'brand_' . str()->random(32)
+]);
+```
+
+##### **Authorization Flow**
+
+**Complete Authentication Flow**:
+```
+1. Brand sends request with Authorization: Bearer {token}
+2. AuthenticateBrand middleware extracts token
+3. Middleware validates token against brand's API key
+4. If valid, brand is set in request context
+5. Global scopes automatically filter data by brand
+6. Service layer validates brand ownership of resources
+7. Response is returned with proper brand isolation
+```
+
+**Error Scenarios**:
+```
+- Missing Authorization header → 401 Unauthorized
+- Invalid Bearer token → 401 Unauthorized
+- Inactive brand → 401 Unauthorized
+- Brand accessing other brand's resource → 404 Not Found
+- Invalid resource UUID → 404 Not Found
+```
+
 ## Trade-offs and Decisions
 
 ### Alternatives Considered
@@ -149,6 +352,9 @@ Brand (Multi-tenant)
 - ✅ Comprehensive validation
 - ✅ Service layer architecture
 - ✅ API Resources for consistent responses
+- ✅ **Brand Authentication**: Laravel Sanctum with API keys
+- ✅ **Multi-Tenancy**: Complete brand data isolation
+- ✅ **Route Protection**: All endpoints require valid brand authentication
 
 **Example Workflow**:
 ```bash
@@ -325,22 +531,24 @@ php artisan db:seed
 
 5. **Start the server**
 ```bash
-php artisan serve --host=0.0.0.0 --port=8000
+php artisan serve --host=0.0.0.0 --port=8002
 ```
 
 ### Sample API Requests
 
-#### Create License Key
+#### Create License Key (Requires Brand Authentication)
 ```bash
-curl -X POST http://localhost:8000/api/v1/license-keys \
+curl -X POST http://localhost:8002/api/v1/license-keys \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer brand_rankmath_test_key_123456789" \
   -d '{"customer_email": "john@example.com"}'
 ```
 
-#### Create License
+#### Create License (Requires Brand Authentication)
 ```bash
-curl -X POST http://localhost:8000/api/v1/licenses \
+curl -X POST http://localhost:8002/api/v1/licenses \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer brand_rankmath_test_key_123456789" \
   -d '{
     "license_key_uuid": "38bfa8ba-108b-442b-beb1-257b3842c6a0",
     "product_uuid": "b2d7245e-0d8a-4982-9c6f-37b46495e41b",
@@ -349,14 +557,27 @@ curl -X POST http://localhost:8000/api/v1/licenses \
   }'
 ```
 
-#### Get License Key Details
+#### Get License Key Details (Requires Brand Authentication)
 ```bash
-curl -X GET http://localhost:8000/api/v1/license-keys/38bfa8ba-108b-442b-beb1-257b3842c6a0
+curl -X GET http://localhost:8002/api/v1/license-keys/38bfa8ba-108b-442b-beb1-257b3842c6a0 \
+  -H "Authorization: Bearer brand_rankmath_test_key_123456789"
 ```
 
-#### Get License Details
+#### Get License Details (Requires Brand Authentication)
 ```bash
-curl -X GET http://localhost:8000/api/v1/licenses/{license-uuid}
+curl -X GET http://localhost:8002/api/v1/licenses/{license-uuid} \
+  -H "Authorization: Bearer brand_rankmath_test_key_123456789"
+```
+
+#### Activate License (Public Endpoint - No Authentication Required)
+```bash
+curl -X POST http://localhost:8002/api/v1/licenses/{license-uuid}/activate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "instance_id": "site-123",
+    "instance_type": "wordpress",
+    "instance_url": "https://example.com"
+  }'
 ```
 
 ### Testing
@@ -377,7 +598,7 @@ php artisan test --coverage
 
 ### Current Limitations
 
-1. **Authentication**: Using placeholder `Brand::first()` instead of proper authentication
+1. **Authentication**: ✅ **IMPLEMENTED** - Laravel Sanctum with brand API keys
 2. **Error Handling**: Basic error responses, needs more comprehensive error handling
 3. **Logging**: No structured logging implementation
 4. **Rate Limiting**: No API rate limiting implemented
@@ -385,10 +606,11 @@ php artisan test --coverage
 
 ### Immediate Next Steps
 
-1. **Authentication Implementation**
-   - Implement Bearer token authentication
-   - Create brand API key validation middleware
-   - Add authentication to all endpoints
+1. **Authentication Implementation** ✅ **COMPLETED**
+   - ✅ Implement Bearer token authentication with Laravel Sanctum
+   - ✅ Create brand API key validation middleware
+   - ✅ Add authentication to all brand-facing endpoints
+   - ✅ Implement multi-tenancy enforcement
 
 2. **Code Quality Tools**
    - Install and configure PHPStan
@@ -464,5 +686,12 @@ php artisan test --coverage
 - **BDD Approach**: Behavior-driven development style
 - **Laravel Integration**: Excellent Laravel support
 - **Modern PHP**: Aligns with modern PHP practices
+
+### Why Laravel Sanctum for Authentication?
+- **API-First**: Designed specifically for API token authentication
+- **Security**: Built-in security features and token hashing
+- **Simplicity**: Easy to implement and maintain
+- **Laravel Integration**: Seamless integration with Laravel ecosystem
+- **Scalability**: Supports token expiration and revocation
 
 This implementation provides a solid foundation for the Centralized License Service, with clear architecture, comprehensive testing, and a roadmap for future enhancements.
