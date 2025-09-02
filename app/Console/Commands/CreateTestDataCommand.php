@@ -277,21 +277,26 @@ class CreateTestDataCommand extends Command
         $this->info("  • Licenses: {$licenses->count()}");
         $this->info("  • Activations: {$activations->count()}");
 
-        $this->info("\n🔑 Brand Authentication:");
-        $this->info("  • Brand API Key: {$brand->api_key}");
-        $this->info("  • Use this API key in the Authorization header for brand-facing endpoints");
-        $this->info("  • Format: Authorization: Bearer {$brand->api_key}");
-
-        $this->info("\n📋 Sample API Requests:");
-        $this->info("  • List Products: GET /api/v1/products");
-        $this->info("  • List Licenses: GET /api/v1/licenses");
-        $this->info("  • List License Keys: GET /api/v1/license-keys");
-
-        $this->info("\n⚠️  Important Notes:");
-        $this->info("  • This is a BRAND API KEY, not a Sanctum token");
-        $this->info("  • Use 'Authorization: Bearer {$brand->api_key}' header");
-        $this->info("  • Product-facing endpoints (activation, status check) do not require authentication");
-        $this->info("  • Brand-facing endpoints require this API key for authentication");
+        $this->info("\n🔑 **Brand Authentication Instructions:**");
+        $this->info('  • Use the Brand API Key for authentication');
+        $this->info("  • Format: X-Tenant: {$brand->api_key}");
+        $this->info('  • Add this header to all brand-facing API requests');
+        $this->info('  • Example: curl -H "X-Tenant: ' . $brand->api_key . '" http://localhost:8002/api/v1/products');
+        $this->info('');
+        $this->info('📋 **Available Endpoints:**');
+        $this->info('  • Brand-facing (requires X-Tenant header):');
+        $this->info('    - POST /api/v1/license-keys');
+        $this->info('    - POST /api/v1/licenses');
+        $this->info('    - PATCH /api/v1/licenses/{uuid}/renew');
+        $this->info('    - PATCH /api/v1/license-keys/{uuid}');
+        $this->info('    - POST /api/v1/licenses/{uuid}/force-deactivate-seats');
+        $this->info('    - GET /api/v1/products');
+        $this->info('    - GET /api/v1/licenses');
+        $this->info('    - GET /api/v1/license-keys');
+        $this->info('  • Product-facing (no authentication required):');
+        $this->info('    - POST /api/v1/licenses/{uuid}/activate');
+        $this->info('    - POST /api/v1/licenses/{uuid}/deactivate');
+        $this->info('    - POST /api/v1/license-keys/{uuid}/status');
 
         $this->info("\n🚀 Ready to test your API endpoints!");
         $this->info("  • Start the server: php artisan serve --port=8002");

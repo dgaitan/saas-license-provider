@@ -163,7 +163,7 @@ describe('LicenseController - US5: Brands can force deactivate seats', function 
             $response = $this->postJson("/api/v1/licenses/{$this->license->uuid}/force-deactivate-seats", [
                 'reason' => 'Test reason',
             ], [
-                'Authorization' => 'Bearer invalid-token'
+                'X-Tenant' => 'invalid-token'
             ]);
 
             // Should return 401 for invalid token

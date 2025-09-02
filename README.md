@@ -165,6 +165,34 @@ Before merging, ensure:
 - ✅ Code style checks pass
 - ✅ No merge conflicts
 
+## API Authentication
+
+The License Service uses a custom authentication system for brand-facing endpoints:
+
+- **Brand API Key**: Each brand has a unique API key for authentication
+- **Header Format**: `X-Tenant: {BRAND_API_KEY}`
+- **Usage**: Add this header to all brand-facing API requests
+
+### Example Usage
+
+```bash
+# List products for a brand
+curl -H "X-Tenant: brand_abc123def456" \
+     http://localhost:8002/api/v1/products
+
+# Create a new license
+curl -X POST \
+     -H "X-Tenant: brand_abc123def456" \
+     -H "Content-Type: application/json" \
+     -d '{"license_key_uuid":"uuid","product_uuid":"uuid"}' \
+     http://localhost:8002/api/v1/licenses
+```
+
+### Endpoint Types
+
+- **Brand-facing endpoints**: Require `X-Tenant` header with valid brand API key
+- **Product-facing endpoints**: No authentication required (public access)
+
 ## API Documentation
 
 ### Base URL

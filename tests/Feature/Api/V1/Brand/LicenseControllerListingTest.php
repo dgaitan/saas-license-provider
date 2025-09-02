@@ -1,368 +1,317 @@
 <?php
 
-use App\Enums\LicenseStatus;
+namespace Tests\Feature\Api\V1\Brand;
+
+use Tests\TestCase;
 use App\Models\Brand;
-use App\Models\License;
-use App\Models\LicenseKey;
 use App\Models\Product;
+use App\Models\LicenseKey;
+use App\Models\License;
+use App\Enums\LicenseStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\Api\V1\Brand\WithBrandAuthentication;
 
-uses(RefreshDatabase::class);
+class LicenseControllerListingTest extends TestCase
+{
+    use RefreshDatabase, WithBrandAuthentication;
 
-beforeEach(function () {
-    // Create a brand with API key
-    $this->brand = Brand::factory()->create([
-        'api_key' => 'brand_test_api_key_123',
-        'is_active' => true,
-    ]);
+    private Brand $brand;
+    private Product $product1;
+    private Product $product2;
+    private LicenseKey $licenseKey1;
+    private LicenseKey $licenseKey2;
+    private License $license1;
+    private License $license2;
+    private License $license3;
 
-    // Create products for the brand
-    $this->product1 = Product::factory()->create([
-        'brand_id' => $this->brand->id,
-        'name' => 'Test Product 1',
-        'slug' => 'test-product-1',
-        'max_seats' => 5,
-    ]);
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        $this->brand = $this->createTestBrand();
+        $this->product1 = $this->createTestProduct($this->brand);
+        $this->product2 = $this->createTestProduct($this->brand);
+        
+        $this->licenseKey1 = $this->createTestLicenseKey($this->brand);
+        $this->licenseKey2 = $this->createTestLicenseKey($this->brand);
+        
+        $this->license1 = $this->createTestLicense($this->product1, $this->licenseKey1);
+        $this->license2 = $this->createTestLicense($this->product1, $this->licenseKey1);
+        $this->license3 = $this->createTestLicense($this->product2, $this->licenseKey2);
+    }
 
-    $this->product2 = Product::factory()->create([
-        'brand_id' => $this->brand->id,
-        'name' => 'Test Product 2',
-        'slug' => 'test-product-2',
-        'max_seats' => 3,
-    ]);
+    /** @test */
+    public function it_can_list_licenses_with_brand_authentication()
+    {
+        $response = $this->withHeaders($this->getBrandHeaders($this->brand))
+            ->getJson('/api/v1/licenses');
 
-    // Create license keys for the brand
-    $this->licenseKey1 = LicenseKey::factory()->create([
-        'brand_id' => $this->brand->id,
-        'key' => 'test-key-1',
-        'customer_email' => 'user1@example.com',
-        'is_active' => true,
-    ]);
-
-    $this->licenseKey2 = LicenseKey::factory()->create([
-        'brand_id' => $this->brand->id,
-        'key' => 'test-key-2',
-        'customer_email' => 'user2@example.com',
-        'is_active' => true,
-    ]);
-
-    $this->licenseKey3 = LicenseKey::factory()->create([
-        'brand_id' => $this->brand->id,
-        'key' => 'test-key-3',
-        'customer_email' => 'user3@example.com',
-        'is_active' => true,
-    ]);
-
-    // Create licenses for the license keys
-    $this->license1 = License::factory()
-        ->forLicenseKey($this->licenseKey1)
-        ->forProduct($this->product1)
-        ->withStatus(LicenseStatus::VALID)
-        ->withSeats(5)
-        ->create([
-            'expires_at' => now()->addYear(),
-        ]);
-
-    $this->license2 = License::factory()
-        ->forLicenseKey($this->licenseKey2)
-        ->forProduct($this->product2)
-        ->withStatus(LicenseStatus::VALID)
-        ->withSeats(3)
-        ->create([
-            'expires_at' => now()->addYear(),
-        ]);
-
-    $this->license3 = License::factory()
-        ->forLicenseKey($this->licenseKey3)
-        ->forProduct($this->product1)
-        ->withStatus(LicenseStatus::SUSPENDED)
-        ->withSeats(2)
-        ->create([
-            'expires_at' => now()->addYear(),
-        ]);
-
-    $this->license4 = License::factory()
-        ->forLicenseKey($this->licenseKey1)
-        ->forProduct($this->product2)
-        ->withStatus(LicenseStatus::CANCELLED)
-        ->withSeats(1)
-        ->create([
-            'expires_at' => now()->addYear(),
-        ]);
-});
-
-describe('LicenseController Listing Endpoints', function () {
-    describe('GET /api/v1/licenses', function () {
-        it('returns a list of licenses for the authenticated brand', function () {
-            $response = $this->getJson('/api/v1/licenses', [
-                'Authorization' => 'Bearer brand_test_api_key_123',
-            ]);
-
-            $response
-                ->assertStatus(200)
-                ->assertJsonStructure([
-                    'data' => [
-                        'licenses' => [
-                            '*' => [
-                                'uuid',
-                                'status',
-                                'expires_at',
-                                'max_seats',
-                                'created_at',
-                                'updated_at',
-                                'license_key' => [
-                                    'uuid',
-                                    'key',
-                                    'customer_email',
-                                ],
-                                'product' => [
-                                    'uuid',
-                                    'name',
-                                    'slug',
-                                ],
-                            ],
-                        ],
-                        'pagination' => [
-                            'current_page',
-                            'last_page',
-                            'per_page',
-                            'total',
-                        ],
-                    ],
-                    'message',
-                ]);
-
-            $response->assertJson([
-                'message' => 'Licenses retrieved successfully',
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'message',
                 'data' => [
-                    'pagination' => [
-                        'total' => 4,
-                        'per_page' => 15,
-                    ],
-                ],
-            ]);
-        });
-
-        it('filters licenses by search term', function () {
-            $response = $this->getJson('/api/v1/licenses?search=Product 1', [
-                'Authorization' => 'Bearer brand_test_api_key_123',
-            ]);
-
-            $response
-                ->assertStatus(200)
-                ->assertJson([
                     'data' => [
-                        'pagination' => [
-                            'total' => 2, // 2 licenses for Product 1
-                        ],
+                        '*' => [
+                            'id',
+                            'uuid',
+                            'license_key_id',
+                            'product_id',
+                            'status',
+                            'status_label',
+                            'expires_at',
+                            'max_seats',
+                            'created_at',
+                            'updated_at',
+                        ]
                     ],
-                ]);
-
-            // Verify only Product 1 licenses are returned
-            $licenses = $response->json('data.licenses');
-            foreach ($licenses as $license) {
-                expect($license['product']['name'])->toBe('Test Product 1');
-            }
-        });
-
-        it('filters licenses by status', function () {
-            $response = $this->getJson('/api/v1/licenses?status=valid', [
-                'Authorization' => 'Bearer brand_test_api_key_123',
+                    'current_page',
+                    'per_page',
+                    'total',
+                    'last_page',
+                ]
             ]);
 
-            $response
-                ->assertStatus(200)
-                ->assertJson([
-                    'data' => [
-                        'pagination' => [
-                            'total' => 2,
-                        ],
-                    ],
-                ]);
+        $this->assertCount(3, $response->json('data.data'));
+    }
 
-            // Verify only valid licenses are returned
-            $licenses = $response->json('data.licenses');
-            foreach ($licenses as $license) {
-                expect($license['status'])->toBe('valid');
-            }
-        });
+    /** @test */
+    public function it_returns_unauthorized_without_brand_authentication()
+    {
+        $response = $this->getJson('/api/v1/licenses');
 
-        it('filters licenses by product UUID', function () {
-            $response = $this->getJson("/api/v1/licenses?product_uuid={$this->product1->uuid}", [
-                'Authorization' => 'Bearer brand_test_api_key_123',
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'X-Tenant header with Brand API Key is required',
             ]);
+    }
 
-            $response
-                ->assertStatus(200)
-                ->assertJson([
-                    'data' => [
-                        'pagination' => [
-                            'total' => 2, // 2 licenses for Product 1
-                        ],
-                    ],
-                ]);
+    /** @test */
+    public function it_returns_unauthorized_with_invalid_brand_api_key()
+    {
+        $response = $this->withHeaders(['X-Tenant' => 'invalid_api_key'])
+            ->getJson('/api/v1/licenses');
 
-            // Verify only Product 1 licenses are returned
-            $licenses = $response->json('data.licenses');
-            foreach ($licenses as $license) {
-                expect($license['product']['uuid'])->toBe($this->product1->uuid);
-            }
-        });
-
-        it('supports pagination', function () {
-            // Create more licenses to test pagination
-            License::factory()->count(20)->create([
-                'license_key_id' => $this->licenseKey1->id,
-                'product_id' => $this->product1->id,
-                'status' => LicenseStatus::VALID,
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'Invalid or inactive brand API key',
             ]);
+    }
 
-            $response = $this->getJson('/api/v1/licenses?per_page=5', [
-                'Authorization' => 'Bearer brand_test_api_key_123',
-            ]);
+    /** @test */
+    public function it_can_get_licenses_summary_with_brand_authentication()
+    {
+        $response = $this->withHeaders($this->getBrandHeaders($this->brand))
+            ->getJson('/api/v1/licenses/summary');
 
-            $response
-                ->assertStatus(200)
-                ->assertJson([
-                    'data' => [
-                        'pagination' => [
-                            'per_page' => 5,
-                            'total' => 24, // 4 original + 20 new
-                        ],
-                    ],
-                ]);
-        });
-
-        it('returns 401 when no authorization header is provided', function () {
-            $response = $this->getJson('/api/v1/licenses');
-
-            $response->assertStatus(401);
-        });
-
-        it('returns 401 when invalid API key is provided', function () {
-            $response = $this->getJson('/api/v1/licenses', [
-                'Authorization' => 'Bearer invalid_api_key',
-            ]);
-
-            $response->assertStatus(401);
-        });
-
-        it('only returns licenses for the authenticated brand', function () {
-            // Create another brand with licenses
-            $otherBrand = Brand::factory()->create([
-                'api_key' => 'other_brand_api_key',
-                'is_active' => true,
-            ]);
-
-            $otherProduct = Product::factory()->create([
-                'brand_id' => $otherBrand->id,
-            ]);
-
-            $otherLicenseKey = LicenseKey::factory()->create([
-                'brand_id' => $otherBrand->id,
-            ]);
-
-            $otherLicense = License::factory()->create([
-                'license_key_id' => $otherLicenseKey->id,
-                'product_id' => $otherProduct->id,
-                'status' => LicenseStatus::VALID,
-            ]);
-
-            $response = $this->getJson('/api/v1/licenses', [
-                'Authorization' => 'Bearer brand_test_api_key_123',
-            ]);
-
-            $response->assertStatus(200);
-
-            // Verify the other brand's license is not included
-            $licenses = $response->json('data.licenses');
-            $otherLicenseFound = collect($licenses)->contains('uuid', $otherLicense->uuid);
-            expect($otherLicenseFound)->toBeFalse();
-        });
-    });
-
-    describe('GET /api/v1/licenses/summary', function () {
-        it('returns summary statistics for licenses', function () {
-            $response = $this->getJson('/api/v1/licenses/summary', [
-                'Authorization' => 'Bearer brand_test_api_key_123',
-            ]);
-
-            $response
-                ->assertStatus(200)
-                ->assertJsonStructure([
-                    'data' => [
-                        'total',
-                        'valid',
-                        'suspended',
-                        'cancelled',
-                        'expired',
-                    ],
-                    'message',
-                ]);
-
-            $response->assertJson([
-                'message' => 'License summary retrieved successfully',
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'message',
                 'data' => [
-                    'total' => 4,
-                    'valid' => 2,
-                    'suspended' => 1,
-                    'cancelled' => 1,
-                    'expired' => 0,
-                ],
-            ]);
-        });
-
-        it('returns 401 when no authorization header is provided', function () {
-            $response = $this->getJson('/api/v1/licenses/summary');
-
-            $response->assertStatus(401);
-        });
-
-        it('returns 401 when invalid API key is provided', function () {
-            $response = $this->getJson('/api/v1/licenses/summary', [
-                'Authorization' => 'Bearer invalid_api_key',
+                    'total_licenses',
+                    'valid_licenses',
+                    'suspended_licenses',
+                    'cancelled_licenses',
+                    'expired_licenses',
+                ]
             ]);
 
-            $response->assertStatus(401);
-        });
+        $data = $response->json('data');
+        $this->assertEquals(3, $data['total_licenses']);
+        $this->assertEquals(3, $data['valid_licenses']);
+        $this->assertEquals(0, $data['suspended_licenses']);
+        $this->assertEquals(0, $data['cancelled_licenses']);
+        $this->assertEquals(0, $data['expired_licenses']);
+    }
 
-        it('only counts licenses for the authenticated brand', function () {
-            // Create another brand with licenses
-            $otherBrand = Brand::factory()->create([
-                'api_key' => 'other_brand_api_key',
-                'is_active' => true,
+    /** @test */
+    public function it_returns_unauthorized_for_summary_without_brand_authentication()
+    {
+        $response = $this->getJson('/api/v1/licenses/summary');
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'X-Tenant header with Brand API Key is required',
             ]);
+    }
 
-            $otherProduct = Product::factory()->create([
-                'brand_id' => $otherBrand->id,
+    /** @test */
+    public function it_returns_unauthorized_for_summary_with_invalid_brand_api_key()
+    {
+        $response = $this->withHeaders(['X-Tenant' => 'invalid_api_key'])
+            ->getJson('/api/v1/licenses/summary');
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'Invalid or inactive brand API key',
             ]);
+    }
 
-            $otherLicenseKey = LicenseKey::factory()->create([
-                'brand_id' => $otherBrand->id,
-            ]);
+    /** @test */
+    public function it_can_get_license_details_with_brand_authentication()
+    {
+        $response = $this->withHeaders($this->getBrandHeaders($this->brand))
+            ->getJson("/api/v1/licenses/{$this->license1->uuid}");
 
-            License::factory()->count(5)->create([
-                'license_key_id' => $otherLicenseKey->id,
-                'product_id' => $otherProduct->id,
-                'status' => LicenseStatus::VALID,
-            ]);
-
-            $response = $this->getJson('/api/v1/licenses/summary', [
-                'Authorization' => 'Bearer brand_test_api_key_123',
-            ]);
-
-            $response->assertStatus(200);
-
-            // Verify the count is still only for the authenticated brand
-            $response->assertJson([
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'message',
                 'data' => [
-                    'total' => 4,
-                    'valid' => 2,
-                    'suspended' => 1,
-                    'cancelled' => 1,
-                    'expired' => 0,
-                ],
+                    'id',
+                    'uuid',
+                    'license_key_id',
+                    'product_id',
+                    'status',
+                    'status_label',
+                    'expires_at',
+                    'max_seats',
+                    'created_at',
+                    'updated_at',
+                ]
             ]);
-        });
-    });
-});
+
+        $this->assertEquals($this->license1->uuid, $response->json('data.uuid'));
+    }
+
+    /** @test */
+    public function it_returns_unauthorized_for_license_details_without_brand_authentication()
+    {
+        $response = $this->getJson("/api/v1/licenses/{$this->license1->uuid}");
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'X-Tenant header with Brand API Key is required',
+            ]);
+    }
+
+    /** @test */
+    public function it_returns_unauthorized_for_license_details_with_invalid_brand_api_key()
+    {
+        $response = $this->withHeaders(['X-Tenant' => 'invalid_api_key'])
+            ->getJson("/api/v1/licenses/{$this->license1->uuid}");
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'Invalid or inactive brand API key',
+            ]);
+    }
+
+    /** @test */
+    public function it_returns_404_for_nonexistent_license()
+    {
+        $response = $this->withHeaders($this->getBrandHeaders($this->brand))
+            ->getJson('/api/v1/licenses/nonexistent-uuid');
+
+        $response->assertStatus(404);
+    }
+
+    /** @test */
+    public function it_returns_unauthorized_for_nonexistent_license_without_brand_authentication()
+    {
+        $response = $this->getJson('/api/v1/licenses/nonexistent-uuid');
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'X-Tenant header with Brand API Key is required',
+            ]);
+    }
+
+    /** @test */
+    public function it_returns_unauthorized_for_nonexistent_license_with_invalid_brand_api_key()
+    {
+        $response = $this->withHeaders(['X-Tenant' => 'invalid_api_key'])
+            ->getJson('/api/v1/licenses/nonexistent-uuid');
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'Invalid or inactive brand API key',
+            ]);
+    }
+
+    /** @test */
+    public function it_can_create_license_with_brand_authentication()
+    {
+        $licenseData = [
+            'license_key_uuid' => $this->licenseKey1->uuid,
+            'product_uuid' => $this->product1->uuid,
+            'expires_at' => now()->addYear()->format('Y-m-d'),
+            'max_seats' => 5,
+        ];
+
+        $response = $this->withHeaders($this->getBrandHeaders($this->brand))
+            ->postJson('/api/v1/licenses', $licenseData);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'id',
+                    'uuid',
+                    'license_key_id',
+                    'product_id',
+                    'status',
+                    'status_label',
+                    'expires_at',
+                    'max_seats',
+                    'created_at',
+                    'updated_at',
+                ]
+            ]);
+
+        $this->assertDatabaseHas('licenses', [
+            'license_key_id' => $this->licenseKey1->id,
+            'product_id' => $this->product1->id,
+            'max_seats' => 5,
+        ]);
+    }
+
+    /** @test */
+    public function it_returns_unauthorized_for_create_license_without_brand_authentication()
+    {
+        $licenseData = [
+            'license_key_uuid' => $this->licenseKey1->uuid,
+            'product_uuid' => $this->product1->uuid,
+            'expires_at' => now()->addYear()->format('Y-m-d'),
+            'max_seats' => 5,
+        ];
+
+        $response = $this->postJson('/api/v1/licenses', $licenseData);
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'X-Tenant header with Brand API Key is required',
+            ]);
+    }
+
+    /** @test */
+    public function it_returns_unauthorized_for_create_license_with_invalid_brand_api_key()
+    {
+        $licenseData = [
+            'license_key_uuid' => $this->licenseKey1->uuid,
+            'product_uuid' => $this->product1->uuid,
+            'expires_at' => now()->addYear()->format('Y-m-d'),
+            'max_seats' => 5,
+        ];
+
+        $response = $this->withHeaders(['X-Tenant' => 'invalid_api_key'])
+            ->postJson('/api/v1/licenses', $licenseData);
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'error' => 'Unauthorized',
+                'message' => 'Invalid or inactive brand API key',
+            ]);
+    }
+}

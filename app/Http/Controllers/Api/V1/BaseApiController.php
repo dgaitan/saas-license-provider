@@ -43,15 +43,6 @@ abstract class BaseApiController extends Controller
         $brand = $request->get('authenticated_brand');
 
         if (!$brand) {
-            // For testing purposes, try to get the brand from the Authorization header
-            $authorization = $request->header('Authorization');
-            if ($authorization && str_starts_with($authorization, 'Bearer ')) {
-                $token = substr($authorization, 7);
-                $brand = \App\Models\Brand::findByApiKey($token);
-            }
-        }
-
-        if (!$brand) {
             throw new \Illuminate\Auth\AuthenticationException('Brand authentication required');
         }
 

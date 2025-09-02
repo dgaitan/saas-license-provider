@@ -10,7 +10,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the request data for updating an existing license key.
  * This endpoint allows brands to modify license key properties.
  * 
- * **Authentication Required**: This endpoint requires brand authentication using the `Authorization: Bearer {BRAND_API_KEY}` header.
+ * **Authentication Required**: This endpoint requires brand authentication using the `X-Tenant: {BRAND_API_KEY}` header.
  * The brand API key is automatically generated when a brand is created and can be found in the brands table.
  * 
  * @bodyParam customer_email string required The new customer email address. Must be a valid email format. This email will be used to associate all licenses for this customer and can be updated if the customer's email changes. Maximum 255 characters. Example: "newcustomer@example.com", "john.doe@company.org", "support@business.com"
@@ -26,7 +26,7 @@ class UpdateLicenseKeyRequest extends FormRequest
     public function authorize(): bool
     {
         // Brand authentication is handled by the auth.brand middleware
-        // which validates the Authorization: Bearer {BRAND_API_KEY} header
+        // which validates the X-Tenant: {BRAND_API_KEY} header
         return true;
     }
 

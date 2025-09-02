@@ -90,7 +90,7 @@ Brand (Multi-tenant)
 - **Consistent Response Format**: Standardized JSON structure
 
 #### Authentication Strategy (Implemented)
-- **Bearer Token**: `Authorization: Bearer {token}`
+- **Brand API Key**: `X-Tenant: {BRAND_API_KEY}`
 - **Brand API Keys**: Each brand has unique API key
 - **Middleware**: Brand authentication and authorization
 
@@ -235,7 +235,7 @@ public function createLicense(Brand $brand, string $licenseKeyUuid, string $prod
 
 **Test Traits**:
 - **`WithBrandAuthentication`**: Provides helper methods for authenticated requests
-- **Automatic Headers**: Automatically includes `Authorization: Bearer {token}` headers
+- **Automatic Headers**: Automatically includes `X-Tenant: {BRAND_API_KEY}` headers
 - **Brand Isolation Testing**: Verifies brands can only access their own data
 
 **Test Examples**:
@@ -279,7 +279,7 @@ $brand = Brand::create([
 
 **Complete Authentication Flow**:
 ```
-1. Brand sends request with Authorization: Bearer {token}
+1. Brand sends request with X-Tenant: {BRAND_API_KEY}
 2. AuthenticateBrand middleware extracts token
 3. Middleware validates token against brand's API key
 4. If valid, brand is set in request context

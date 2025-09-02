@@ -134,7 +134,7 @@ API requests are subject to rate limiting to ensure fair usage and system stabil
             'type' => 'http',
             'scheme' => 'bearer',
             'bearerFormat' => 'API Key',
-            'description' => 'Brand API Key for authentication. Use the format: Authorization: Bearer {BRAND_API_KEY}',
+            'description' => 'Brand API Key for authentication. Use the format: X-Tenant: {BRAND_API_KEY}',
         ],
     ],
 ];
