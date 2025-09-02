@@ -66,7 +66,7 @@ class Brand extends BaseApiModel
      */
     public static function generateApiKey(): string
     {
-        return 'brand_' . str()->random(32);
+        return 'brand_'.str()->random(32);
     }
 
     /**

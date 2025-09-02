@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * License model representing individual licenses associated with products.
  *
+ * This model implements multi-tenancy through its relationships to LicenseKey and Product,
+ * both of which belong to specific brands. Licenses are indirectly isolated by brand
+ * through these relationships.
+ *
  * @property int $id
  * @property int $license_key_id
  * @property int $product_id
@@ -94,6 +98,68 @@ class License extends BaseApiModel
     public function supportsSeats(): bool
     {
         return $this->max_seats !== null;
+    }
+
+    /**
+     * Get the brand that owns this license through its license key.
+     */
+    public function getBrand(): ?Brand
+    {
+        return $this->licenseKey?->brand;
+    }
+
+    /**
+     * Get the brand ID that owns this license through its license key.
+     */
+    public function getBrandId(): ?int
+    {
+        return $this->licenseKey?->brand_id;
+    }
+
+    /**
+     * Check if this license belongs to the given brand.
+     *
+     * @param  \App\Models\Brand|int  $brand  The brand or brand ID to check
+     */
+    public function belongsToBrand(Brand|int $brand): bool
+    {
+        $brandId = $brand instanceof Brand ? $brand->id : $brand;
+
+        return $this->getBrandId() === $brandId;
+    }
+
+    /**
+     * Check if this license belongs to an active brand.
+     */
+    public function belongsToActiveBrand(): bool
+    {
+        return $this->licenseKey?->belongsToActiveBrand() ?? false;
+    }
+
+    /**
+     * Scope to filter licenses by brand.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     */
+    public function scopeForBrand($query, Brand|int $brand): \Illuminate\Database\Eloquent\Builder
+    {
+        $brandId = $brand instanceof Brand ? $brand->id : $brand;
+
+        return $query->whereHas('licenseKey', function ($licenseKeyQuery) use ($brandId) {
+            $licenseKeyQuery->where('brand_id', $brandId);
+        });
+    }
+
+    /**
+     * Scope to filter licenses by active brands only.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     */
+    public function scopeForActiveBrands($query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->whereHas('licenseKey.brand', function ($brandQuery) {
+            $brandQuery->where('is_active', true);
+        });
     }
 
     /**

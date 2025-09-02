@@ -81,7 +81,7 @@ describe('License Key API - US1: Brand can provision a license', function () {
 
     it('validates customer email max length', function () {
         $response = $this->authenticatedPost('/api/v1/license-keys', [
-            'customer_email' => str_repeat('a', 250) . '@example.com',
+            'customer_email' => str_repeat('a', 250).'@example.com',
         ]);
 
         $response->assertStatus(422)

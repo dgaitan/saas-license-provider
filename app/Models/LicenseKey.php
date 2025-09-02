@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMultiTenancy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * LicenseKey model representing license keys that users receive.
+ *
+ * This model implements multi-tenancy by belonging to a specific brand.
+ * Each license key is isolated to its brand and cannot be accessed by other brands.
+ * License keys can contain multiple licenses for different products within the same brand.
  *
  * @property int $id
  * @property int $brand_id
@@ -20,6 +25,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class LicenseKey extends BaseApiModel
 {
+    use HasMultiTenancy;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -43,6 +50,9 @@ class LicenseKey extends BaseApiModel
 
     /**
      * Get the brand that owns this license key.
+     *
+     * This relationship is provided by the HasMultiTenancy trait.
+     * Each license key belongs to exactly one brand.
      */
     public function brand(): BelongsTo
     {

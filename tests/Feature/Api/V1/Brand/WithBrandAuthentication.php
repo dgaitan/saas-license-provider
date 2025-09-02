@@ -19,7 +19,7 @@ trait WithBrandAuthentication
     {
         $brand = $brand ?? $this->brand;
 
-        return ['Authorization' => 'Bearer ' . $brand->api_key];
+        return ['Authorization' => 'Bearer '.$brand->api_key];
     }
 
     /**

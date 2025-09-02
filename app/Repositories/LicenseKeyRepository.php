@@ -55,7 +55,41 @@ class LicenseKeyRepository extends BaseRepository implements LicenseKeyRepositor
      */
     public function findByBrandId(int $brandId): Collection
     {
-        return $this->model->where('brand_id', $brandId)->get();
+        return $this->model->forBrand($brandId)->get();
+    }
+
+    /**
+     * Find all license keys for a specific brand with pagination.
+     *
+     * @param  int  $brandId  The brand ID to search for
+     * @param  int  $perPage  Number of items per page
+     */
+    public function findByBrandIdPaginated(int $brandId, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        return $this->model->forBrand($brandId)->paginate($perPage);
+    }
+
+    /**
+     * Find all license keys for a specific customer email across all brands.
+     *
+     * @param  string  $email  The customer email to search for
+     * @return Collection A collection of license keys for the customer
+     */
+    public function findByCustomerEmailAcrossBrands(string $email): Collection
+    {
+        return $this->model->where('customer_email', $email)->with('brand')->get();
+    }
+
+    /**
+     * Find all license keys for a specific customer email within a brand.
+     *
+     * @param  string  $email  The customer email to search for
+     * @param  int  $brandId  The brand ID to search within
+     * @return Collection A collection of license keys for the customer in the brand
+     */
+    public function findByCustomerEmailInBrand(string $email, int $brandId): Collection
+    {
+        return $this->model->forBrand($brandId)->where('customer_email', $email)->get();
     }
 
     /**
