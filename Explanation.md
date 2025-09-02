@@ -96,23 +96,18 @@ Brand (Multi-tenant)
 
 #### Authorization System (IMPLEMENTED)
 
-The License Service implements a comprehensive authorization system using **Laravel Sanctum** for brand authentication and custom middleware for brand isolation.
+The License Service implements a comprehensive authorization system using a custom authentication middleware for brand authentication and brand isolation.
 
-##### **Brand Authentication with Laravel Sanctum**
+##### **Brand Authentication with API Keys**
 
 **Implementation Details**:
-- **`HasApiTokens` Trait**: Added to Brand model for Sanctum integration
 - **API Key Generation**: Each brand has a unique, secure API key
-- **Token Creation**: Brands can generate Sanctum tokens for API access
-- **Secure Storage**: Tokens are hashed and stored securely in database
+- **Secure Storage**: API keys are stored securely in database
 
 **Brand Model Methods**:
 ```php
 // Find brand by API key (for authentication)
 public static function findByApiKey(string $apiKey): ?self
-
-// Create Sanctum token for API access
-public function createBrandToken(string $name = 'brand-api'): string
 
 // Generate unique API key for new brands
 public static function generateApiKey(): string
@@ -121,10 +116,10 @@ public static function generateApiKey(): string
 ##### **Custom Authentication Middleware**
 
 **`AuthenticateBrand` Middleware**:
-- **Token Extraction**: Extracts Bearer token from `Authorization` header
-- **Brand Validation**: Validates token against brand's API key
+- **Token Extraction**: Extracts API key from `X-Tenant` header
+- **Brand Validation**: Validates API key against brand's API key
 - **Request Context**: Sets authenticated brand in request for multi-tenancy scoping
-- **Error Handling**: Returns proper 401 responses for invalid tokens
+- **Error Handling**: Returns proper 401 responses for invalid API keys
 
 **Middleware Implementation**:
 ```php
@@ -135,7 +130,7 @@ class AuthenticateBrand
         $token = $this->extractTokenFromRequest($request);
         $brand = Brand::findByApiKey($token);
         
-        if (!$brand) {
+        if (! $brand) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
@@ -143,6 +138,11 @@ class AuthenticateBrand
         $request->merge(['authenticated_brand' => $brand]);
         
         return $next($request);
+    }
+
+    private function extractTokenFromRequest(Request $request): ?string
+    {
+        return $request->header('X-Tenant');
     }
 }
 ```
@@ -290,8 +290,8 @@ $brand = Brand::create([
 
 **Error Scenarios**:
 ```
-- Missing Authorization header → 401 Unauthorized
-- Invalid Bearer token → 401 Unauthorized
+- Missing X-Tenant header → 401 Unauthorized
+- Invalid X-Tenant API Key → 401 Unauthorized
 - Inactive brand → 401 Unauthorized
 - Brand accessing other brand's resource → 404 Not Found
 - Invalid resource UUID → 404 Not Found
@@ -330,7 +330,7 @@ $brand = Brand::create([
 - Comprehensive testing
 
 #### Phase 2: Authentication & Security
-- Implement Bearer token authentication
+- Implement `X-Tenant` header authentication
 - Brand API key validation
 - Rate limiting and throttling
 - Audit logging
@@ -374,7 +374,7 @@ $brand = Brand::create([
 - ✅ Comprehensive validation
 - ✅ Service layer architecture
 - ✅ API Resources for consistent responses
-- ✅ **Brand Authentication**: Laravel Sanctum with API keys
+- ✅ **Brand Authentication**: Custom authentication with X-Tenant header and API keys
 - ✅ **Multi-Tenancy**: Complete brand data isolation
 - ✅ **Route Protection**: All endpoints require valid brand authentication
 
@@ -764,18 +764,12 @@ php artisan test --coverage
 
 ### Immediate Next Steps
 
-1. **Authentication Implementation** ✅ **COMPLETED**
-   - ✅ Implement custom authentication with X-Tenant header
-   - ✅ Create brand API key validation middleware
-   - ✅ Add authentication to all brand-facing endpoints
-   - ✅ Implement multi-tenancy enforcement
-
-2. **Code Quality Tools**
+1. **Code Quality Tools**
    - Install and configure PHPStan
    - Set up Laravel Pint for code style
    - Add ide-helper for model documentation
 
-3. **API Documentation**
+2. **API Documentation**
    - Integrate Scramble for auto-generated docs
    - Add comprehensive endpoint documentation
    - Create Postman collection
@@ -845,12 +839,12 @@ php artisan test --coverage
 - **Laravel Integration**: Excellent Laravel support
 - **Modern PHP**: Aligns with modern PHP practices
 
-### Why Laravel Sanctum for Authentication?
-- **API-First**: Designed specifically for API token authentication
-- **Security**: Built-in security features and token hashing
-- **Simplicity**: Easy to implement and maintain
-- **Laravel Integration**: Seamless integration with Laravel ecosystem
-- **Scalability**: Supports token expiration and revocation
+### Why `X-Tenant` Header for Authentication?
+- **API-First**: Custom solution tailored for API token authentication
+- **Security**: Focus on secure API key handling
+- **Simplicity**: Easy to implement and maintain for brand integration
+- **Laravel Integration**: Custom middleware integrates seamlessly with Laravel
+- **Scalability**: Supports API key expiration and revocation (managed manually)
 
 This implementation provides a solid foundation for the Centralized License Service, with clear architecture, comprehensive testing, and a roadmap for future enhancements.
 
