@@ -71,6 +71,37 @@ php artisan test tests/Feature/Api/V1/Brand/LicenseControllerTest.php
 php artisan test --coverage
 ```
 
+### Create Test Data for API Testing
+```bash
+# Create test data interactively
+php artisan app:create-test-data
+
+# Create test data with specific brand name
+php artisan app:create-test-data --brand-name="RankMath"
+```
+
+This command creates a complete test environment with:
+- **Brand** with authentication token
+- **3 Products** (RankMath SEO, Content AI, Analytics Pro)
+- **3 License Keys** for different customer emails
+- **3 Licenses** with various statuses
+- **3 Activations** with different instance types
+
+The command returns the **Brand Auth Token** that can be used to test authenticated API endpoints.
+
+### Testing API Endpoints with Generated Data
+After running the command, you'll get:
+- **Brand Auth Token** for authentication
+- **Sample UUIDs** for all created entities
+- **Ready-to-use cURL commands** for testing
+
+Example workflow:
+1. Run `php artisan app:create-test-data --brand-name="MyBrand"`
+2. Copy the generated **Auth Token**
+3. Use the token in the **Authorization header**: `Authorization: Bearer {token}`
+4. Test API endpoints using the provided cURL examples
+5. Use the generated UUIDs to test specific resources
+
 ### Code Quality Tools
 ```bash
 # Run Laravel Pint (code style)
