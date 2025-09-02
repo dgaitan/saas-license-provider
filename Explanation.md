@@ -646,7 +646,7 @@ curl -X GET "http://localhost:8002/api/v1/customers/licenses/brand?customer_emai
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd saas-global
+cd saas-license-provider
 ```
 
 2. **Install dependencies**
