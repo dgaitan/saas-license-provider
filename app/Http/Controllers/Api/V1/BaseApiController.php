@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 abstract class BaseApiController extends Controller
 {
@@ -28,5 +30,31 @@ abstract class BaseApiController extends Controller
             'success' => false,
             'message' => $message,
         ], $status);
+    }
+
+    /**
+     * Get the authenticated brand from the request.
+     *
+     * @param  Request  $request  The request instance
+     * @return Brand The authenticated brand
+     */
+    protected function getAuthenticatedBrand(Request $request): Brand
+    {
+        $brand = $request->get('authenticated_brand');
+
+        if (!$brand) {
+            // For testing purposes, try to get the brand from the Authorization header
+            $authorization = $request->header('Authorization');
+            if ($authorization && str_starts_with($authorization, 'Bearer ')) {
+                $token = substr($authorization, 7);
+                $brand = \App\Models\Brand::findByApiKey($token);
+            }
+        }
+
+        if (!$brand) {
+            throw new \Illuminate\Auth\AuthenticationException('Brand authentication required');
+        }
+
+        return $brand;
     }
 }

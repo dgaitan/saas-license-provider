@@ -2,14 +2,17 @@
 
 use App\Models\Brand;
 use App\Models\LicenseKey;
+use Tests\Feature\Api\V1\Brand\WithBrandAuthentication;
 
 beforeEach(function () {
     $this->brand = Brand::factory()->create();
 });
 
+uses(WithBrandAuthentication::class);
+
 describe('License Key API - US1: Brand can provision a license', function () {
     it('can create a license key for a customer', function () {
-        $response = $this->postJson('/api/v1/license-keys', [
+        $response = $this->authenticatedPost('/api/v1/license-keys', [
             'customer_email' => 'test@example.com',
         ]);
 
@@ -44,11 +47,11 @@ describe('License Key API - US1: Brand can provision a license', function () {
     });
 
     it('generates a unique license key', function () {
-        $response1 = $this->postJson('/api/v1/license-keys', [
+        $response1 = $this->authenticatedPost('/api/v1/license-keys', [
             'customer_email' => 'test1@example.com',
         ]);
 
-        $response2 = $this->postJson('/api/v1/license-keys', [
+        $response2 = $this->authenticatedPost('/api/v1/license-keys', [
             'customer_email' => 'test2@example.com',
         ]);
 
@@ -61,14 +64,14 @@ describe('License Key API - US1: Brand can provision a license', function () {
     });
 
     it('validates customer email is required', function () {
-        $response = $this->postJson('/api/v1/license-keys', []);
+        $response = $this->authenticatedPost('/api/v1/license-keys', []);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['customer_email']);
     });
 
     it('validates customer email format', function () {
-        $response = $this->postJson('/api/v1/license-keys', [
+        $response = $this->authenticatedPost('/api/v1/license-keys', [
             'customer_email' => 'invalid-email',
         ]);
 
@@ -77,7 +80,7 @@ describe('License Key API - US1: Brand can provision a license', function () {
     });
 
     it('validates customer email max length', function () {
-        $response = $this->postJson('/api/v1/license-keys', [
+        $response = $this->authenticatedPost('/api/v1/license-keys', [
             'customer_email' => str_repeat('a', 250).'@example.com',
         ]);
 
@@ -88,7 +91,7 @@ describe('License Key API - US1: Brand can provision a license', function () {
     it('can retrieve a license key by UUID', function () {
         $licenseKey = LicenseKey::factory()->forBrand($this->brand)->create();
 
-        $response = $this->getJson("/api/v1/license-keys/{$licenseKey->uuid}");
+        $response = $this->authenticatedGet("/api/v1/license-keys/{$licenseKey->uuid}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -118,7 +121,7 @@ describe('License Key API - US1: Brand can provision a license', function () {
     });
 
     it('returns 404 for non-existent license key', function () {
-        $response = $this->getJson('/api/v1/license-keys/non-existent-uuid');
+        $response = $this->authenticatedGet('/api/v1/license-keys/non-existent-uuid');
 
         $response->assertStatus(404);
     });
@@ -126,7 +129,7 @@ describe('License Key API - US1: Brand can provision a license', function () {
     it('includes licenses relationship when retrieving license key', function () {
         $licenseKey = LicenseKey::factory()->forBrand($this->brand)->create();
 
-        $response = $this->getJson("/api/v1/license-keys/{$licenseKey->uuid}");
+        $response = $this->authenticatedGet("/api/v1/license-keys/{$licenseKey->uuid}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([

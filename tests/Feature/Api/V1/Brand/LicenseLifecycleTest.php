@@ -5,6 +5,7 @@ use App\Models\Brand;
 use App\Models\License;
 use App\Models\LicenseKey;
 use App\Models\Product;
+use Tests\Feature\Api\V1\Brand\WithBrandAuthentication;
 
 beforeEach(function () {
     $this->brand = Brand::factory()->create();
@@ -20,11 +21,13 @@ beforeEach(function () {
         ]);
 });
 
+uses(WithBrandAuthentication::class);
+
 describe('License Lifecycle API - US2: Brand can change license lifecycle', function () {
     it('can renew a license by extending expiration date', function () {
         $originalExpiresAt = $this->license->expires_at;
 
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/renew", [
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/renew", [
             'days' => 365,
         ]);
 
@@ -64,7 +67,7 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
     it('can renew a license with default days (365)', function () {
         $originalExpiresAt = $this->license->expires_at;
 
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/renew");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/renew");
 
         $response->assertStatus(200);
         expect($response->json('success'))->toBeTrue();
@@ -75,14 +78,14 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
     });
 
     it('validates days parameter for renewal', function () {
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/renew", [
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/renew", [
             'days' => 0,
         ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['days']);
 
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/renew", [
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/renew", [
             'days' => 4000, // More than 10 years
         ]);
 
@@ -91,7 +94,7 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
     });
 
     it('can suspend a license', function () {
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/suspend");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/suspend");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -119,7 +122,7 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
         // First suspend the license
         $this->license->update(['status' => LicenseStatus::SUSPENDED]);
 
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/resume");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/resume");
 
         $response->assertStatus(200);
         expect($response->json('success'))->toBeTrue();
@@ -132,7 +135,7 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
     });
 
     it('can cancel a license', function () {
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/cancel");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/cancel");
 
         $response->assertStatus(200);
         expect($response->json('success'))->toBeTrue();
@@ -147,16 +150,16 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
     it('returns 404 for non-existent license', function () {
         $nonExistentUuid = '00000000-0000-0000-0000-000000000000';
 
-        $response = $this->patchJson("/api/v1/licenses/{$nonExistentUuid}/renew");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$nonExistentUuid}/renew");
         $response->assertStatus(404);
 
-        $response = $this->patchJson("/api/v1/licenses/{$nonExistentUuid}/suspend");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$nonExistentUuid}/suspend");
         $response->assertStatus(404);
 
-        $response = $this->patchJson("/api/v1/licenses/{$nonExistentUuid}/resume");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$nonExistentUuid}/resume");
         $response->assertStatus(404);
 
-        $response = $this->patchJson("/api/v1/licenses/{$nonExistentUuid}/cancel");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$nonExistentUuid}/cancel");
         $response->assertStatus(404);
     });
 
@@ -171,17 +174,17 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
             ->create();
 
         // Try to operate on license from different brand
-        $response = $this->patchJson("/api/v1/licenses/{$otherLicense->uuid}/renew");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$otherLicense->uuid}/renew");
         $response->assertStatus(404);
         expect($response->json('message'))->toContain('not found');
 
-        $response = $this->patchJson("/api/v1/licenses/{$otherLicense->uuid}/suspend");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$otherLicense->uuid}/suspend");
         $response->assertStatus(404);
 
-        $response = $this->patchJson("/api/v1/licenses/{$otherLicense->uuid}/resume");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$otherLicense->uuid}/resume");
         $response->assertStatus(404);
 
-        $response = $this->patchJson("/api/v1/licenses/{$otherLicense->uuid}/cancel");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$otherLicense->uuid}/cancel");
         $response->assertStatus(404);
     });
 
@@ -190,33 +193,33 @@ describe('License Lifecycle API - US2: Brand can change license lifecycle', func
         expect($this->license->status)->toBe(LicenseStatus::VALID);
 
         // 2. Suspend the license
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/suspend");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/suspend");
         $response->assertStatus(200);
         $this->license->refresh();
         expect($this->license->status)->toBe(LicenseStatus::SUSPENDED);
 
         // 3. Resume the license
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/resume");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/resume");
         $response->assertStatus(200);
         $this->license->refresh();
         expect($this->license->status)->toBe(LicenseStatus::VALID);
 
         // 4. Renew the license
         $originalExpiresAt = $this->license->expires_at;
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/renew", ['days' => 180]);
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/renew", ['days' => 180]);
         $response->assertStatus(200);
         $this->license->refresh();
         expect(abs($this->license->expires_at->diffInDays($originalExpiresAt, false)))->toBeGreaterThan(150);
 
         // 5. Cancel the license
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/cancel");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/cancel");
         $response->assertStatus(200);
         $this->license->refresh();
         expect($this->license->status)->toBe(LicenseStatus::CANCELLED);
     });
 
     it('includes license key and product relationships in responses', function () {
-        $response = $this->patchJson("/api/v1/licenses/{$this->license->uuid}/renew");
+        $response = $this->authenticatedPatch("/api/v1/licenses/{$this->license->uuid}/renew");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
