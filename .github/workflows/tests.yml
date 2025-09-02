@@ -32,7 +32,7 @@ jobs:
       - name: 📦 Set Up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.2 # Change this based on your Laravel version
+          php-version: 8.3 # Change this based on your Laravel version
           extensions: pdo, pdo_pgsql
           coverage: none
 
