@@ -37,9 +37,7 @@ jobs:
           coverage: none
 
       - name: ⚡ Install Composer Dependencies
-        run: |
-          composer config "http-basic.nova.laravel.com" "${{ secrets.NOVA_USERNAME }}" "${{ secrets.NOVA_PASSWORD }}"
-          composer install --prefer-dist --optimize-autoloader
+        run: composer install --prefer-dist --optimize-autoloader
 
       - name: 🔑 Set Up Laravel Environment
         run: |
