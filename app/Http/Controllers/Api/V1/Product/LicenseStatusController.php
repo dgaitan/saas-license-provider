@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
  * This controller provides public endpoints for end-users to check
  * the status and entitlements of their license keys without requiring
  * authentication.
+ * 
+ * @unauthenticated
  */
 class LicenseStatusController extends BaseApiController
 {

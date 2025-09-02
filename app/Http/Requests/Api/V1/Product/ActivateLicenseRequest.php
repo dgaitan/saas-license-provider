@@ -4,15 +4,31 @@ namespace App\Http\Requests\Api\V1\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Activate License Request
+ * 
+ * Validates the request data for activating a license for a specific instance.
+ * This endpoint allows end-user products to activate licenses for their instances.
+ * 
+ * **Authentication**: This endpoint does not require authentication. It is designed for end-user products
+ * to activate licenses without needing to authenticate with the system.
+ * 
+ * @bodyParam instance_id string required A unique identifier for the instance (site URL, machine ID, etc.). This ID must be unique within the license and will be used to track seat usage. Maximum 255 characters. Example: "site-123", "machine-abc", "wordpress-site-1", "desktop-app-instance"
+ * @bodyParam instance_type string required The type of instance being activated. Must be one of the predefined types. This helps categorize and manage different types of activations. Example: "wordpress" for WordPress sites, "machine" for desktop applications, "cli" for command-line tools, "app" for mobile applications
+ * @bodyParam instance_url string nullable The URL of the instance (for web-based products). Must be a valid URL format. This is useful for tracking web-based activations and providing support. Maximum 500 characters. Example: "https://example.com", "https://mysite.wordpress.com", "https://app.company.org"
+ * @bodyParam machine_id string nullable The machine identifier (for desktop/CLI applications). This can be a hardware ID, installation ID, or any unique machine identifier. Maximum 255 characters. Example: "MAC-ABC123", "WIN-DEF456", "LIN-GHI789", "INSTALL-001"
+ */
 class ActivateLicenseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * 
+     * @return bool
      */
     public function authorize(): bool
     {
-        // TODO: Implement product authentication via Bearer token
-        // For now, allow all requests
+        // This endpoint is public and does not require authentication
+        // It is designed for end-user products to activate licenses
         return true;
     }
 
@@ -49,6 +65,21 @@ class ActivateLicenseRequest extends FormRequest
             'instance_url.max' => 'Instance URL may not be greater than 500 characters.',
             'machine_id.string' => 'Machine ID must be a string.',
             'machine_id.max' => 'Machine ID may not be greater than 255 characters.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'instance_id' => 'instance ID',
+            'instance_type' => 'instance type',
+            'instance_url' => 'instance URL',
+            'machine_id' => 'machine ID',
         ];
     }
 }

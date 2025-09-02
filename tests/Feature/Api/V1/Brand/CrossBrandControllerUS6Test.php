@@ -107,7 +107,7 @@ describe('User Story 6 - Cross-Brand License Listing', function () {
             $response->assertStatus(401)
                 ->assertJson([
                     'error' => 'Unauthorized',
-                    'message' => 'Authorization header with Bearer token is required',
+                    'message' => 'X-Tenant header with Brand API Key is required',
                 ]);
         });
 
@@ -248,7 +248,7 @@ describe('User Story 6 - Cross-Brand License Listing', function () {
             $response->assertStatus(401)
                 ->assertJson([
                     'error' => 'Unauthorized',
-                    'message' => 'Authorization header with Bearer token is required',
+                    'message' => 'X-Tenant header with Brand API Key is required',
                 ]);
         });
 

@@ -82,6 +82,16 @@ class LicenseService
     }
 
     /**
+     * Renew a license to a specific expiration date.
+     */
+    public function renewLicenseToDate(License $license, string $expiresAt): License
+    {
+        $license->update(['expires_at' => $expiresAt]);
+
+        return $license->fresh(['licenseKey', 'product']);
+    }
+
+    /**
      * Suspend a license.
      */
     public function suspendLicense(License $license): License

@@ -90,29 +90,24 @@ Brand (Multi-tenant)
 - **Consistent Response Format**: Standardized JSON structure
 
 #### Authentication Strategy (Implemented)
-- **Bearer Token**: `Authorization: Bearer {token}`
+- **Brand API Key**: `X-Tenant: {BRAND_API_KEY}`
 - **Brand API Keys**: Each brand has unique API key
 - **Middleware**: Brand authentication and authorization
 
 #### Authorization System (IMPLEMENTED)
 
-The License Service implements a comprehensive authorization system using **Laravel Sanctum** for brand authentication and custom middleware for brand isolation.
+The License Service implements a comprehensive authorization system using a custom authentication middleware for brand authentication and brand isolation.
 
-##### **Brand Authentication with Laravel Sanctum**
+##### **Brand Authentication with API Keys**
 
 **Implementation Details**:
-- **`HasApiTokens` Trait**: Added to Brand model for Sanctum integration
 - **API Key Generation**: Each brand has a unique, secure API key
-- **Token Creation**: Brands can generate Sanctum tokens for API access
-- **Secure Storage**: Tokens are hashed and stored securely in database
+- **Secure Storage**: API keys are stored securely in database
 
 **Brand Model Methods**:
 ```php
 // Find brand by API key (for authentication)
 public static function findByApiKey(string $apiKey): ?self
-
-// Create Sanctum token for API access
-public function createBrandToken(string $name = 'brand-api'): string
 
 // Generate unique API key for new brands
 public static function generateApiKey(): string
@@ -121,10 +116,10 @@ public static function generateApiKey(): string
 ##### **Custom Authentication Middleware**
 
 **`AuthenticateBrand` Middleware**:
-- **Token Extraction**: Extracts Bearer token from `Authorization` header
-- **Brand Validation**: Validates token against brand's API key
+- **Token Extraction**: Extracts API key from `X-Tenant` header
+- **Brand Validation**: Validates API key against brand's API key
 - **Request Context**: Sets authenticated brand in request for multi-tenancy scoping
-- **Error Handling**: Returns proper 401 responses for invalid tokens
+- **Error Handling**: Returns proper 401 responses for invalid API keys
 
 **Middleware Implementation**:
 ```php
@@ -135,7 +130,7 @@ class AuthenticateBrand
         $token = $this->extractTokenFromRequest($request);
         $brand = Brand::findByApiKey($token);
         
-        if (!$brand) {
+        if (! $brand) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
@@ -143,6 +138,11 @@ class AuthenticateBrand
         $request->merge(['authenticated_brand' => $brand]);
         
         return $next($request);
+    }
+
+    private function extractTokenFromRequest(Request $request): ?string
+    {
+        return $request->header('X-Tenant');
     }
 }
 ```
@@ -235,7 +235,7 @@ public function createLicense(Brand $brand, string $licenseKeyUuid, string $prod
 
 **Test Traits**:
 - **`WithBrandAuthentication`**: Provides helper methods for authenticated requests
-- **Automatic Headers**: Automatically includes `Authorization: Bearer {token}` headers
+- **Automatic Headers**: Automatically includes `X-Tenant: {BRAND_API_KEY}` headers
 - **Brand Isolation Testing**: Verifies brands can only access their own data
 
 **Test Examples**:
@@ -279,7 +279,7 @@ $brand = Brand::create([
 
 **Complete Authentication Flow**:
 ```
-1. Brand sends request with Authorization: Bearer {token}
+1. Brand sends request with X-Tenant: {BRAND_API_KEY}
 2. AuthenticateBrand middleware extracts token
 3. Middleware validates token against brand's API key
 4. If valid, brand is set in request context
@@ -290,8 +290,8 @@ $brand = Brand::create([
 
 **Error Scenarios**:
 ```
-- Missing Authorization header → 401 Unauthorized
-- Invalid Bearer token → 401 Unauthorized
+- Missing X-Tenant header → 401 Unauthorized
+- Invalid X-Tenant API Key → 401 Unauthorized
 - Inactive brand → 401 Unauthorized
 - Brand accessing other brand's resource → 404 Not Found
 - Invalid resource UUID → 404 Not Found
@@ -330,7 +330,7 @@ $brand = Brand::create([
 - Comprehensive testing
 
 #### Phase 2: Authentication & Security
-- Implement Bearer token authentication
+- Implement `X-Tenant` header authentication
 - Brand API key validation
 - Rate limiting and throttling
 - Audit logging
@@ -374,7 +374,7 @@ $brand = Brand::create([
 - ✅ Comprehensive validation
 - ✅ Service layer architecture
 - ✅ API Resources for consistent responses
-- ✅ **Brand Authentication**: Laravel Sanctum with API keys
+- ✅ **Brand Authentication**: Custom authentication with X-Tenant header and API keys
 - ✅ **Multi-Tenancy**: Complete brand data isolation
 - ✅ **Route Protection**: All endpoints require valid brand authentication
 
@@ -545,7 +545,7 @@ curl -X POST http://localhost:8002/api/v1/licenses/{license-uuid}/deactivate \
 
 # 3. Force deactivate all seats (brands only)
 curl -X POST http://localhost:8002/api/v1/licenses/{license-uuid}/force-deactivate-seats \
-  -H "Authorization: Bearer {brand-token}" \
+  -H "X-Tenant: {BRAND_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
     "reason": "Administrative cleanup"
@@ -580,12 +580,12 @@ GET /api/v1/customers/licenses/brand?customer_email={email}
 ```bash
 # 1. List all licenses for a customer across all brands
 curl -X GET "http://localhost:8002/api/v1/customers/licenses?customer_email=user@example.com" \
-  -H "Authorization: Bearer {brand-token}" \
+  -H "X-Tenant: {BRAND_API_KEY}" \
   -H "Content-Type: application/json"
 
 # 2. List licenses for a customer within the authenticated brand
 curl -X GET "http://localhost:8002/api/v1/customers/licenses/brand?customer_email=user@example.com" \
-  -H "Authorization: Bearer {brand-token}" \
+  -H "X-Tenant: {BRAND_API_KEY}" \
   -H "Content-Type: application/json"
 ```
 
@@ -629,7 +629,7 @@ curl -X GET "http://localhost:8002/api/v1/customers/licenses/brand?customer_emai
 ```
 
 **Security Features**:
-- ✅ Brand authentication required via Bearer token
+- ✅ Brand authentication required via X-Tenant header
 - ✅ No cross-brand data leakage
 - ✅ Comprehensive audit trail
 - ✅ Input validation and sanitization
@@ -683,7 +683,7 @@ php artisan serve --host=0.0.0.0 --port=8002
 ```bash
 curl -X POST http://localhost:8002/api/v1/license-keys \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer brand_rankmath_test_key_123456789" \
+  -H "X-Tenant: brand_rankmath_test_key_123456789" \
   -d '{"customer_email": "john@example.com"}'
 ```
 
@@ -691,7 +691,7 @@ curl -X POST http://localhost:8002/api/v1/license-keys \
 ```bash
 curl -X POST http://localhost:8002/api/v1/licenses \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer brand_rankmath_test_key_123456789" \
+  -H "X-Tenant: brand_rankmath_test_key_123456789" \
   -d '{
     "license_key_uuid": "38bfa8ba-108b-442b-beb1-257b3842c6a0",
     "product_uuid": "b2d7245e-0d8a-4982-9c6f-37b46495e41b",
@@ -703,13 +703,13 @@ curl -X POST http://localhost:8002/api/v1/licenses \
 #### Get License Key Details (Requires Brand Authentication)
 ```bash
 curl -X GET http://localhost:8002/api/v1/license-keys/38bfa8ba-108b-442b-beb1-257b3842c6a0 \
-  -H "Authorization: Bearer brand_rankmath_test_key_123456789"
+  -H "X-Tenant: brand_rankmath_test_key_123456789"
 ```
 
 #### Get License Details (Requires Brand Authentication)
 ```bash
 curl -X GET http://localhost:8002/api/v1/licenses/{license-uuid} \
-  -H "Authorization: Bearer brand_rankmath_test_key_123456789"
+  -H "X-Tenant: brand_rankmath_test_key_123456789"
 ```
 
 #### Activate License (Public Endpoint - No Authentication Required)
@@ -756,7 +756,7 @@ php artisan test --coverage
 
 ### Current Limitations
 
-1. **Authentication**: ✅ **IMPLEMENTED** - Laravel Sanctum with brand API keys
+1. **Authentication**: ✅ **IMPLEMENTED** - Custom authentication with X-Tenant header and brand API keys
 2. **Error Handling**: Basic error responses, needs more comprehensive error handling
 3. **Logging**: No structured logging implementation
 4. **Rate Limiting**: No API rate limiting implemented
@@ -764,18 +764,12 @@ php artisan test --coverage
 
 ### Immediate Next Steps
 
-1. **Authentication Implementation** ✅ **COMPLETED**
-   - ✅ Implement Bearer token authentication with Laravel Sanctum
-   - ✅ Create brand API key validation middleware
-   - ✅ Add authentication to all brand-facing endpoints
-   - ✅ Implement multi-tenancy enforcement
-
-2. **Code Quality Tools**
+1. **Code Quality Tools**
    - Install and configure PHPStan
    - Set up Laravel Pint for code style
    - Add ide-helper for model documentation
 
-3. **API Documentation**
+2. **API Documentation**
    - Integrate Scramble for auto-generated docs
    - Add comprehensive endpoint documentation
    - Create Postman collection
@@ -786,8 +780,8 @@ php artisan test --coverage
    - ✅ Implement US2 (License lifecycle management)
    - ✅ Implement US3 (License activation)
    - ✅ Implement US4 (License status checking)
-   - Implement US5 (Seat deactivation)
-   - Implement US6 (Cross-brand license listing)
+   - ✅ Implement US5 (Seat deactivation)
+   - ✅ Implement US6 (Cross-brand license listing)
 
 2. **Production Readiness**
    - Add comprehensive logging
@@ -845,12 +839,12 @@ php artisan test --coverage
 - **Laravel Integration**: Excellent Laravel support
 - **Modern PHP**: Aligns with modern PHP practices
 
-### Why Laravel Sanctum for Authentication?
-- **API-First**: Designed specifically for API token authentication
-- **Security**: Built-in security features and token hashing
-- **Simplicity**: Easy to implement and maintain
-- **Laravel Integration**: Seamless integration with Laravel ecosystem
-- **Scalability**: Supports token expiration and revocation
+### Why `X-Tenant` Header for Authentication?
+- **API-First**: Custom solution tailored for API token authentication
+- **Security**: Focus on secure API key handling
+- **Simplicity**: Easy to implement and maintain for brand integration
+- **Laravel Integration**: Custom middleware integrates seamlessly with Laravel
+- **Scalability**: Supports API key expiration and revocation (managed manually)
 
 This implementation provides a solid foundation for the Centralized License Service, with clear architecture, comprehensive testing, and a roadmap for future enhancements.
 

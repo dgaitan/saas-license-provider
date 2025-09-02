@@ -11,6 +11,9 @@ use App\Repositories\LicenseRepository;
 use App\Services\Api\V1\Product\Interfaces\LicenseStatusServiceInterface;
 use App\Services\Api\V1\Product\LicenseStatusService;
 use Illuminate\Support\ServiceProvider;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,6 +36,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Configure Scramble API documentation
+        Scramble::configure()
+            ->withDocumentTransformers(function (OpenApi $openApi) {
+                // Set X-Tenant authentication as default for all endpoints
+                $openApi->secure(
+                    SecurityScheme::apiKey('header', 'X-Tenant')
+                );
+            });
     }
 }
