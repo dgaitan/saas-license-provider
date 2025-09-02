@@ -668,8 +668,8 @@ touch database/database.sqlite
 # Run migrations
 php artisan migrate
 
-# Seed with initial data
-php artisan db:seed
+# Tests are available by running
+php artisan test
 ```
 
 5. **Start the server**

@@ -12,7 +12,7 @@ For a comprehensive overview of the project, including its architecture, detaile
 
 ### Installation & Setup
 
-For step-by-step instructions on how to set up the project locally, including environment requirements, dependency installation, and database setup, please see the [How to Run Locally](#how-to-run-locally) section in the `Explanation.md` file.
+For step-by-step instructions on how to set up the project locally, including environment requirements, dependency installation, and database setup, please see the [How to Run Locally](Explanation.md#prerequisites) section in the `Explanation.md` file.
 
 ### Running the Project
 
