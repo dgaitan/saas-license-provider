@@ -44,6 +44,12 @@ Route::prefix('v1')->group(function () {
             Route::patch('/licenses/{license}/cancel', 'cancel');
             Route::post('/licenses/{license}/force-deactivate-seats', 'forceDeactivateSeats');
         });
+
+        // Cross-brand APIs for customer license queries (US6) - Require brand authentication
+        Route::controller(App\Http\Controllers\Api\V1\Brand\CrossBrandController::class)->group(function () {
+            Route::get('/customers/licenses', 'listLicensesByCustomer');
+            Route::get('/customers/licenses/brand', 'listLicensesByCustomerInBrand');
+        });
     });
 
     // Product-facing APIs for license activation (US3 & US5) - No authentication required
