@@ -256,15 +256,26 @@ curl -X POST http://localhost:8002/api/v1/licenses/{license-uuid}/deactivate \
   }'
 ```
 
-### 🔄 US4: User can check license status (DESIGNED)
+### ✅ US4: User can check license status - FULLY IMPLEMENTED
 
-**Status**: 🔄 **DESIGNED ONLY**
+**Status**: ✅ **FULLY IMPLEMENTED**
 
-**Planned Implementation**:
-- **License Key Status**: `GET /api/v1/license-keys/{uuid}/status`
-- **License Details**: Include all associated licenses
-- **Seat Information**: Show used/available seats
-- **Expiration Status**: Check if license is expired
+**Implementation Details**:
+- **License Key Status**: `GET /api/v1/license-keys/{uuid}/status` - Comprehensive status and entitlements
+- **License Key Validity**: `GET /api/v1/license-keys/{uuid}/is-valid` - Check if license key is valid and active
+- **License Key Entitlements**: `GET /api/v1/license-keys/{uuid}/entitlements` - Get available products and seat information
+- **Seat Usage**: `GET /api/v1/license-keys/{uuid}/seat-usage` - Detailed seat usage information
+
+**Features**:
+- ✅ Public endpoints (no authentication required)
+- ✅ Comprehensive license key status information
+- ✅ Product entitlements with seat management details
+- ✅ Seat usage tracking and availability
+- ✅ Overall status summary (active, inactive, partially suspended)
+- ✅ Service layer implementation (`LicenseStatusService`)
+- ✅ Interface-based design following DRY principle
+- ✅ Form Request validation (`CheckLicenseStatusRequest`)
+- ✅ Consistent API response format
 
 ### 🔄 US5: End-user product or customer can deactivate a seat (DESIGNED)
 
@@ -359,6 +370,21 @@ curl -X GET http://localhost:8000/api/v1/license-keys/38bfa8ba-108b-442b-beb1-25
 curl -X GET http://localhost:8000/api/v1/licenses/{license-uuid}
 ```
 
+#### Check License Key Status (US4 - Public Endpoint - No Authentication Required)
+```bash
+# Get comprehensive status and entitlements
+curl -X GET http://localhost:8002/api/v1/license-keys/{license-key-uuid}/status
+
+# Check if license key is valid
+curl -X GET http://localhost:8002/api/v1/license-keys/{license-key-uuid}/is-valid
+
+# Get product entitlements
+curl -X GET http://localhost:8002/api/v1/license-keys/{license-key-uuid}/entitlements
+
+# Get seat usage information
+curl -X GET http://localhost:8002/api/v1/license-keys/{license-key-uuid}/seat-usage
+```
+
 ### Testing
 
 Run the test suite:
@@ -403,9 +429,9 @@ php artisan test --coverage
 ### Medium-term Goals
 
 1. **Complete User Stories**
-   - Implement US2 (License lifecycle management)
-   - Implement US3 (License activation)
-   - Implement US4 (License status checking)
+   - ✅ Implement US2 (License lifecycle management)
+   - ✅ Implement US3 (License activation)
+   - ✅ Implement US4 (License status checking)
    - Implement US5 (Seat deactivation)
    - Implement US6 (Cross-brand license listing)
 

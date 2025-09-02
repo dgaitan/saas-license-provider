@@ -41,4 +41,12 @@ Route::prefix('v1')->middleware(['force.json'])->group(function () {
         Route::post('/licenses/{license}/deactivate', 'deactivate');
         Route::get('/licenses/{license}/activation-status', 'status');
     });
+
+    // Product-facing APIs for license status checking (US4)
+    Route::controller(App\Http\Controllers\Api\V1\Product\LicenseStatusController::class)->group(function () {
+        Route::get('/license-keys/{licenseKey}/status', 'status');
+        Route::get('/license-keys/{licenseKey}/is-valid', 'isValid');
+        Route::get('/license-keys/{licenseKey}/entitlements', 'entitlements');
+        Route::get('/license-keys/{licenseKey}/seat-usage', 'seatUsage');
+    });
 });
