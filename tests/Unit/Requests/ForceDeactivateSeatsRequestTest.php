@@ -30,7 +30,7 @@ describe('ForceDeactivateSeatsRequest', function () {
         $messages = $request->messages();
 
         expect($messages)->toHaveKey('reason.max');
-        expect($messages['reason.max'])->toBe('The reason cannot exceed 500 characters.');
+        expect($messages['reason.max'])->toBe('Reason may not be greater than 500 characters.');
     });
 
     it('passes validation with valid reason', function () {

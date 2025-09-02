@@ -185,8 +185,16 @@ class LicenseController extends BaseApiController
             return $this->errorResponse('License not found', 404);
         }
 
-        $days = $request->validated('days') ?? 365;
-        $license = $this->licenseService->renewLicense($license, $days);
+        // Handle both days and expires_at parameters
+        if ($request->has('expires_at')) {
+            // If expires_at is provided, use it directly
+            $expiresAt = $request->validated('expires_at');
+            $license = $this->licenseService->renewLicenseToDate($license, $expiresAt);
+        } else {
+            // If only days is provided, use the default behavior
+            $days = $request->validated('days') ?? 365;
+            $license = $this->licenseService->renewLicense($license, $days);
+        }
 
         return $this->successResponse(
             new LicenseResource($license),

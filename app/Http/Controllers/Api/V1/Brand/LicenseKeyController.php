@@ -116,6 +116,9 @@ class LicenseKeyController extends BaseApiController
             $request->validated('customer_email')
         );
 
+        // Load the brand relationship to include brand_id in the response
+        $licenseKey->load('brand');
+
         return $this->successResponse(
             new LicenseKeyResource($licenseKey),
             'License key created successfully',
@@ -135,6 +138,9 @@ class LicenseKeyController extends BaseApiController
         if (! $licenseKey) {
             return $this->errorResponse('License key not found', 404);
         }
+
+        // Load the licenses relationship to include them in the response
+        $licenseKey->load(['brand', 'licenses']);
 
         return $this->successResponse(
             new LicenseKeyResource($licenseKey),

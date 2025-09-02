@@ -39,6 +39,7 @@ class DeactivateLicenseRequest extends FormRequest
     {
         return [
             'instance_id' => 'required|string|max:255',
+            'instance_type' => 'required|string|max:255',
             'reason' => 'nullable|string|max:500',
         ];
     }
@@ -54,6 +55,8 @@ class DeactivateLicenseRequest extends FormRequest
             'instance_id.required' => 'Instance ID is required.',
             'instance_id.string' => 'Instance ID must be a string.',
             'instance_id.max' => 'Instance ID may not be greater than 255 characters.',
+            'instance_type.string' => 'Instance type must be a string.',
+            'instance_type.max' => 'Instance type may not be greater than 255 characters.',
             'reason.string' => 'Reason must be a string.',
             'reason.max' => 'Reason may not be greater than 500 characters.',
         ];
@@ -68,6 +71,7 @@ class DeactivateLicenseRequest extends FormRequest
     {
         return [
             'instance_id' => 'instance ID',
+            'instance_type' => 'instance type',
             'reason' => 'deactivation reason',
         ];
     }

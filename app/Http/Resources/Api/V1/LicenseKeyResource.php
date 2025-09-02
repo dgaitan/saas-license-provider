@@ -32,7 +32,7 @@ class LicenseKeyResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'uuid' => $this->uuid,
             'key' => $this->key,
@@ -41,5 +41,17 @@ class LicenseKeyResource extends JsonResource
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];
+
+        // Include brand_id if the brand relationship is loaded
+        if ($this->relationLoaded('brand')) {
+            $data['brand_id'] = $this->brand_id;
+        }
+
+        // Include licenses if the licenses relationship is loaded
+        if ($this->relationLoaded('licenses')) {
+            $data['licenses'] = $this->licenses;
+        }
+
+        return $data;
     }
 }
