@@ -109,6 +109,39 @@ Example workflow:
 
 # Run all quality checks
 ./vendor/bin/pint && php artisan test
+
+## API Documentation
+
+### Interactive API Documentation
+The project includes comprehensive API documentation generated using Laravel Scramble:
+
+- **🌐 View Documentation**: Visit `/docs/api` in your browser
+- **📄 JSON Specification**: Download OpenAPI spec at `/docs/api.json`
+- **🔄 Regenerate Docs**: Run `php artisan docs:generate` to update documentation
+
+### Documentation Features
+- **Interactive UI**: Try API endpoints directly from the documentation
+- **Request/Response Examples**: See exact data structures and validation rules
+- **Authentication**: Clear documentation of required headers and tokens
+- **Error Handling**: Comprehensive error response documentation
+- **Schema Definitions**: Detailed model and enum documentation
+
+### Regenerating Documentation
+```bash
+# Generate fresh API documentation
+php artisan docs:generate
+
+# View the documentation
+# Open http://localhost:8002/docs/api in your browser
+```
+
+### Documentation Structure
+The generated documentation includes:
+- **All API Endpoints**: Complete coverage of all implemented endpoints
+- **Request Validation**: Form request rules and validation messages
+- **Response Schemas**: API Resource structures and data formats
+- **Authentication**: Bearer token requirements and usage
+- **Error Codes**: HTTP status codes and error message formats
 ```
 
 ## Continuous Integration
