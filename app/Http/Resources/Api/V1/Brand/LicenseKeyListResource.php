@@ -6,9 +6,20 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * API Resource for listing license keys in brand-facing endpoints.
- *
+ * License Key List Resource for Brand-facing Endpoints
+ * 
  * This resource formats license key data when brands list their license keys.
+ * Provides a comprehensive view of license keys with associated license information.
+ * 
+ * @property string $uuid Unique identifier for the license key
+ * @property string $key The actual license key string
+ * @property string $customer_email Customer's email address
+ * @property bool $is_active Whether the license key is currently active
+ * @property \Carbon\Carbon $created_at When the license key was created
+ * @property \Carbon\Carbon $updated_at When the license key was last updated
+ * @property \Illuminate\Database\Eloquent\Collection|null $licenses Associated licenses (when loaded)
+ * @property int|null $licenses_count Total number of licenses (when counted)
+ * @property int|null $active_licenses_count Number of currently active licenses (when counted)
  */
 class LicenseKeyListResource extends JsonResource
 {
@@ -27,19 +38,6 @@ class LicenseKeyListResource extends JsonResource
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
-            'licenses_count' => $this->whenCounted('licenses'),
-            'active_licenses_count' => $this->whenCounted('licenses', function () {
-                return $this->licenses->where('status', 'valid')->count();
-            }),
-            'suspended_licenses_count' => $this->whenCounted('licenses', function () {
-                return $this->licenses->where('status', 'suspended')->count();
-            }),
-            'cancelled_licenses_count' => $this->whenCounted('licenses', function () {
-                return $this->licenses->where('status', 'cancelled')->count();
-            }),
-            'expired_licenses_count' => $this->whenCounted('licenses', function () {
-                return $this->licenses->where('status', 'expired')->count();
-            }),
         ];
     }
 }

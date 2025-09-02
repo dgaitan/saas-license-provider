@@ -5,20 +5,23 @@ namespace App\Http\Requests\Api\V1\Brand;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Form request for validating force deactivate seats requests.
- *
- * US5: Brands can force deactivate seats if needed
+ * Force Deactivate Seats Request
+ * 
+ * Validates the request data for forcefully deactivating license seats.
+ * This endpoint allows brands to deactivate seats for administrative purposes.
+ * 
+ * @bodyParam reason string nullable The reason for force deactivation. Maximum 500 characters. Example: "Customer requested deactivation"
  */
 class ForceDeactivateSeatsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
+     * 
      * @return bool
      */
     public function authorize(): bool
     {
-        // Brand authentication is handled by middleware
+        // TODO: Implement brand authentication via Bearer token
         return true;
     }
 
@@ -42,7 +45,8 @@ class ForceDeactivateSeatsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'reason.max' => 'The reason cannot exceed 500 characters.',
+            'reason.string' => 'Reason must be a string.',
+            'reason.max' => 'Reason may not be greater than 500 characters.',
         ];
     }
 }

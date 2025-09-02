@@ -4,10 +4,20 @@ namespace App\Http\Requests\Api\V1\Brand;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Renew License Request
+ * 
+ * Validates the request data for renewing an existing license.
+ * This endpoint allows brands to extend license expiration dates.
+ * 
+ * @bodyParam expires_at string required The new expiration date for the license. Must be a valid date in the future. Example: 2027-12-31
+ */
 class RenewLicenseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * 
+     * @return bool
      */
     public function authorize(): bool
     {
@@ -23,7 +33,7 @@ class RenewLicenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'days' => 'nullable|integer|min:1|max:3650', // Max 10 years
+            'expires_at' => 'required|date|after:now',
         ];
     }
 
@@ -35,9 +45,9 @@ class RenewLicenseRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'days.integer' => 'Days must be a whole number.',
-            'days.min' => 'Days must be at least 1.',
-            'days.max' => 'Days cannot exceed 3650 (10 years).',
+            'expires_at.required' => 'Expiration date is required.',
+            'expires_at.date' => 'Expiration date must be a valid date.',
+            'expires_at.after' => 'Expiration date must be in the future.',
         ];
     }
 }

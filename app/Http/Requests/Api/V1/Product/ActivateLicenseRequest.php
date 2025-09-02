@@ -4,10 +4,23 @@ namespace App\Http\Requests\Api\V1\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Activate License Request
+ * 
+ * Validates the request data for activating a license for a specific instance.
+ * This endpoint allows end-user products to activate licenses for their instances.
+ * 
+ * @bodyParam instance_id string required A unique identifier for the instance (site URL, machine ID, etc.). Maximum 255 characters. Example: "site-123" or "machine-abc"
+ * @bodyParam instance_type string required The type of instance being activated. Must be one of: wordpress, machine, cli, app. Example: "wordpress"
+ * @bodyParam instance_url string nullable The URL of the instance (for web-based products). Must be a valid URL. Maximum 500 characters. Example: "https://example.com"
+ * @bodyParam machine_id string nullable The machine identifier (for desktop/CLI applications). Maximum 255 characters. Example: "MAC-ABC123"
+ */
 class ActivateLicenseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * 
+     * @return bool
      */
     public function authorize(): bool
     {

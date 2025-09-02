@@ -4,10 +4,21 @@ namespace App\Http\Requests\Api\V1\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Deactivate License Request
+ * 
+ * Validates the request data for deactivating a license for a specific instance.
+ * This endpoint allows end-user products to deactivate licenses, freeing up seats.
+ * 
+ * @bodyParam instance_id string required The unique identifier for the instance to deactivate. Must match the instance_id used during activation. Example: "site-123"
+ * @bodyParam reason string nullable The reason for deactivation (optional). Maximum 500 characters. Example: "Site migration completed"
+ */
 class DeactivateLicenseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * 
+     * @return bool
      */
     public function authorize(): bool
     {
@@ -25,9 +36,7 @@ class DeactivateLicenseRequest extends FormRequest
     {
         return [
             'instance_id' => 'required|string|max:255',
-            'instance_type' => 'required|string|in:wordpress,machine,cli,app',
-            'instance_url' => 'nullable|url|max:500',
-            'machine_id' => 'nullable|string|max:255',
+            'reason' => 'nullable|string|max:500',
         ];
     }
 
@@ -42,13 +51,8 @@ class DeactivateLicenseRequest extends FormRequest
             'instance_id.required' => 'Instance ID is required.',
             'instance_id.string' => 'Instance ID must be a string.',
             'instance_id.max' => 'Instance ID may not be greater than 255 characters.',
-            'instance_type.required' => 'Instance type is required.',
-            'instance_type.string' => 'Instance type must be a string.',
-            'instance_type.in' => 'Instance type must be one of: wordpress, machine, cli, app.',
-            'instance_url.url' => 'Instance URL must be a valid URL.',
-            'instance_url.max' => 'Instance URL may not be greater than 500 characters.',
-            'machine_id.string' => 'Machine ID must be a string.',
-            'machine_id.max' => 'Machine ID may not be greater than 255 characters.',
+            'reason.string' => 'Reason must be a string.',
+            'reason.max' => 'Reason may not be greater than 500 characters.',
         ];
     }
 }

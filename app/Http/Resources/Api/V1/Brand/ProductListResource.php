@@ -6,9 +6,21 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * API Resource for listing products in brand-facing endpoints.
- *
+ * Product List Resource for Brand-facing Endpoints
+ * 
  * This resource formats product data when brands list their products.
+ * Provides a comprehensive view of products with associated license information.
+ * 
+ * @property string $uuid Unique identifier for the product
+ * @property string $name Human-readable product name
+ * @property string $slug URL-friendly product identifier
+ * @property string|null $description Product description
+ * @property int|null $max_seats Maximum number of seats allowed (null = no seat limit)
+ * @property bool $is_active Whether the product is currently active
+ * @property \Carbon\Carbon $created_at When the product was created
+ * @property \Carbon\Carbon $updated_at When the product was last updated
+ * @property \Illuminate\Database\Eloquent\Collection|null $licenses Associated licenses (when loaded)
+ * @property int|null $licenses_count Total number of licenses (when counted)
  */
 class ProductListResource extends JsonResource
 {
@@ -29,10 +41,6 @@ class ProductListResource extends JsonResource
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
-            'licenses_count' => $this->whenCounted('licenses'),
-            'active_licenses_count' => $this->whenCounted('licenses', function () {
-                return $this->licenses->where('status', 'valid')->count();
-            }),
         ];
     }
 }

@@ -6,9 +6,21 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * API Resource for listing licenses in brand-facing endpoints.
- *
+ * License List Resource for Brand-facing Endpoints
+ * 
  * This resource formats license data when brands list their licenses.
+ * Provides a comprehensive view of licenses with associated product and license key information.
+ * 
+ * @property string $uuid Unique identifier for the license
+ * @property \App\Enums\LicenseStatus $status Current license status (valid, suspended, cancelled, expired)
+ * @property \Carbon\Carbon|null $expires_at When the license expires (null = never expires)
+ * @property int|null $max_seats Maximum number of seats allowed (null = no seat limit)
+ * @property \Carbon\Carbon $created_at When the license was created
+ * @property \Carbon\Carbon $updated_at When the license was last updated
+ * @property \App\Models\Product $product The associated product
+ * @property \App\Models\LicenseKey $license_key The associated license key
+ * @property int|null $activations_count Total number of activations (when counted)
+ * @property int|null $active_activations_count Number of currently active activations (when counted)
  */
 class LicenseListResource extends JsonResource
 {

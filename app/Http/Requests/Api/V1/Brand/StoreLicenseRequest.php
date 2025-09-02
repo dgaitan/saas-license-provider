@@ -4,10 +4,23 @@ namespace App\Http\Requests\Api\V1\Brand;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Store License Request
+ * 
+ * Validates the request data for creating a new license.
+ * This endpoint allows brands to provision licenses for their customers.
+ * 
+ * @bodyParam license_key_uuid string required The UUID of the license key to associate with this license. Must exist in the license_keys table.
+ * @bodyParam product_uuid string required The UUID of the product this license grants access to. Must exist in the products table.
+ * @bodyParam expires_at string nullable The expiration date for the license. Must be a valid date in the future. Example: 2026-12-31
+ * @bodyParam max_seats integer nullable The maximum number of seats allowed for this license. Must be at least 1. Example: 5
+ */
 class StoreLicenseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * 
+     * @return bool
      */
     public function authorize(): bool
     {
@@ -32,6 +45,8 @@ class StoreLicenseRequest extends FormRequest
 
     /**
      * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
      */
     public function messages(): array
     {
