@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * Brand model representing multi-tenant brands in the license service.
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Brand extends BaseApiModel
 {
+    use HasApiTokens;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -72,5 +75,31 @@ class Brand extends BaseApiModel
     public function isActive(): bool
     {
         return $this->is_active;
+    }
+
+    /**
+     * Find a brand by its API key.
+     *
+     * @param  string  $apiKey  The API key to search for
+     * @return Brand|null The found brand or null if not found
+     */
+    public static function findByApiKey(string $apiKey): ?self
+    {
+        return static::where('api_key', $apiKey)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    /**
+     * Create a Sanctum token for this brand.
+     *
+     * @param  string  $name  The name for the token
+     * @return string The plain text token
+     */
+    public function createBrandToken(string $name = 'brand-api'): string
+    {
+        $token = $this->createToken($name);
+
+        return $token->plainTextToken;
     }
 }

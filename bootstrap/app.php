@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'force.json' => \App\Http\Middleware\ForceJsonResponse::class,
+            'auth.brand' => \App\Http\Middleware\AuthenticateBrand::class,
         ]);
 
         // Force JSON responses for all API routes
