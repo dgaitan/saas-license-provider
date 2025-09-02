@@ -18,8 +18,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// API v1 routes - Force JSON responses for all API endpoints
-Route::prefix('v1')->middleware(['force.json'])->group(function () {
+// API v1 routes - JSON responses are handled by the api middleware group
+Route::prefix('v1')->group(function () {
     // Product-facing APIs for license status checking (US4) - Must come before general license key routes
     Route::controller(App\Http\Controllers\Api\V1\Product\LicenseStatusController::class)->group(function () {
         Route::get('/license-keys/{licenseKey}/status', 'status');
