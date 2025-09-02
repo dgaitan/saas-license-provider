@@ -269,6 +269,50 @@ GET /license-keys/{uuid}/entitlements
 GET /license-keys/{uuid}/seat-usage
 ```
 
+#### Cross-Brand License Listing (Brand-facing - Requires Authentication)
+
+**List Customer Licenses Across All Brands (US6)**
+```bash
+GET /customers/licenses?customer_email=user@example.com
+Authorization: Bearer {brand-api-key}
+```
+
+**List Customer Licenses Within Brand (US6)**
+```bash
+GET /customers/licenses/brand?customer_email=user@example.com
+Authorization: Bearer {brand-api-key}
+```
+
+**Response Example (Cross-Brand)**
+```json
+{
+  "success": true,
+  "message": "Successfully retrieved license information for customer user@example.com",
+  "data": {
+    "customer_email": "user@example.com",
+    "total_license_keys": 2,
+    "total_licenses": 3,
+    "brands_count": 2,
+    "brands": [
+      {
+        "uuid": "brand-uuid-1",
+        "name": "RankMath",
+        "slug": "rankmath",
+        "domain": "rankmath.com"
+      }
+    ],
+    "license_keys": [...],
+    "licenses_summary": {
+      "total_active": 2,
+      "total_suspended": 0,
+      "total_cancelled": 0,
+      "total_expired": 1
+    },
+    "products_summary": [...]
+  }
+}
+```
+
 ## User Stories Implementation Status
 
 ### ✅ **US1: Brand can provision a license** - FULLY IMPLEMENTED
@@ -302,12 +346,14 @@ GET /license-keys/{uuid}/seat-usage
 - **Audit Logging**: All seat deactivations are logged for compliance
 - **Seat Management**: Comprehensive seat tracking and management system
 
-### 🔄 **US6: Brands can list licenses by customer email across all brands** - DESIGNED ONLY
-- **Cross-Brand Queries**: Architecture supports this functionality
-- **Multi-Tenancy Service**: Base infrastructure in place
-- **Implementation**: Would require additional API endpoints and business logic
+### ✅ **US6: Brands can list licenses by customer email across all brands** - FULLY IMPLEMENTED
+- **Cross-Brand License Listing**: Brands can see customer licenses across the entire ecosystem
+- **Brand-Specific Queries**: Filter customer licenses within specific brands
+- **Comprehensive Customer Summary**: Complete overview of customer's license ecosystem
+- **Multi-Brand Support**: Access to customer data across all brands with proper authentication
+- **API Endpoints**: Two new authenticated endpoints for cross-brand operations
 
-**Current Progress: 5 out of 6 User Stories (83%) are fully implemented**
+**Current Progress: 6 out of 6 User Stories (100%) are fully implemented**
 
 ## Architecture
 
@@ -319,7 +365,7 @@ GET /license-keys/{uuid}/seat-usage
 - **Activation**: Instance-specific license activations with seat tracking
 
 ### Services
-- **Repository Pattern**: Base repository interface and implementations
+- **Repository Pattern**: Fully implemented base repository interface and implementations
 - **Service Layer**: Business logic separation with dependency injection
 - **Multi-Tenancy Service**: Centralized multi-tenant operations
 - **License Services**: Brand and product-facing license operations

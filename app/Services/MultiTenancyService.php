@@ -76,7 +76,7 @@ class MultiTenancyService
     public function getLicenseKeysForCustomer(string $email): Collection
     {
         return LicenseKey::where('customer_email', $email)
-            ->with(['brand', 'licenses.product'])
+            ->with(['brand', 'licenses.product', 'licenses.activations'])
             ->get();
     }
 
@@ -92,7 +92,7 @@ class MultiTenancyService
 
         return LicenseKey::forBrand($brandId)
             ->where('customer_email', $email)
-            ->with(['licenses.product'])
+            ->with(['brand', 'licenses.product'])
             ->get();
     }
 
@@ -105,7 +105,7 @@ class MultiTenancyService
     {
         return License::whereHas('licenseKey', function ($query) use ($email) {
             $query->where('customer_email', $email);
-        })->with(['licenseKey.brand', 'product'])->get();
+        })->with(['licenseKey.brand', 'product', 'activations'])->get();
     }
 
     /**
@@ -122,7 +122,7 @@ class MultiTenancyService
             ->whereHas('licenseKey', function ($query) use ($email) {
                 $query->where('customer_email', $email);
             })
-            ->with(['licenseKey.brand', 'product'])
+            ->with(['licenseKey.brand', 'product', 'activations'])
             ->get();
     }
 
