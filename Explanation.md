@@ -545,7 +545,7 @@ curl -X POST http://localhost:8002/api/v1/licenses/{license-uuid}/deactivate \
 
 # 3. Force deactivate all seats (brands only)
 curl -X POST http://localhost:8002/api/v1/licenses/{license-uuid}/force-deactivate-seats \
-  -H "Authorization: Bearer {brand-token}" \
+  -H "X-Tenant: {BRAND_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
     "reason": "Administrative cleanup"
@@ -580,12 +580,12 @@ GET /api/v1/customers/licenses/brand?customer_email={email}
 ```bash
 # 1. List all licenses for a customer across all brands
 curl -X GET "http://localhost:8002/api/v1/customers/licenses?customer_email=user@example.com" \
-  -H "Authorization: Bearer {brand-token}" \
+  -H "X-Tenant: {BRAND_API_KEY}" \
   -H "Content-Type: application/json"
 
 # 2. List licenses for a customer within the authenticated brand
 curl -X GET "http://localhost:8002/api/v1/customers/licenses/brand?customer_email=user@example.com" \
-  -H "Authorization: Bearer {brand-token}" \
+  -H "X-Tenant: {BRAND_API_KEY}" \
   -H "Content-Type: application/json"
 ```
 
@@ -629,7 +629,7 @@ curl -X GET "http://localhost:8002/api/v1/customers/licenses/brand?customer_emai
 ```
 
 **Security Features**:
-- ✅ Brand authentication required via Bearer token
+- ✅ Brand authentication required via X-Tenant header
 - ✅ No cross-brand data leakage
 - ✅ Comprehensive audit trail
 - ✅ Input validation and sanitization
@@ -683,7 +683,7 @@ php artisan serve --host=0.0.0.0 --port=8002
 ```bash
 curl -X POST http://localhost:8002/api/v1/license-keys \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer brand_rankmath_test_key_123456789" \
+  -H "X-Tenant: brand_rankmath_test_key_123456789" \
   -d '{"customer_email": "john@example.com"}'
 ```
 
@@ -691,7 +691,7 @@ curl -X POST http://localhost:8002/api/v1/license-keys \
 ```bash
 curl -X POST http://localhost:8002/api/v1/licenses \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer brand_rankmath_test_key_123456789" \
+  -H "X-Tenant: brand_rankmath_test_key_123456789" \
   -d '{
     "license_key_uuid": "38bfa8ba-108b-442b-beb1-257b3842c6a0",
     "product_uuid": "b2d7245e-0d8a-4982-9c6f-37b46495e41b",
@@ -703,13 +703,13 @@ curl -X POST http://localhost:8002/api/v1/licenses \
 #### Get License Key Details (Requires Brand Authentication)
 ```bash
 curl -X GET http://localhost:8002/api/v1/license-keys/38bfa8ba-108b-442b-beb1-257b3842c6a0 \
-  -H "Authorization: Bearer brand_rankmath_test_key_123456789"
+  -H "X-Tenant: brand_rankmath_test_key_123456789"
 ```
 
 #### Get License Details (Requires Brand Authentication)
 ```bash
 curl -X GET http://localhost:8002/api/v1/licenses/{license-uuid} \
-  -H "Authorization: Bearer brand_rankmath_test_key_123456789"
+  -H "X-Tenant: brand_rankmath_test_key_123456789"
 ```
 
 #### Activate License (Public Endpoint - No Authentication Required)
@@ -756,7 +756,7 @@ php artisan test --coverage
 
 ### Current Limitations
 
-1. **Authentication**: ✅ **IMPLEMENTED** - Laravel Sanctum with brand API keys
+1. **Authentication**: ✅ **IMPLEMENTED** - Custom authentication with X-Tenant header and brand API keys
 2. **Error Handling**: Basic error responses, needs more comprehensive error handling
 3. **Logging**: No structured logging implementation
 4. **Rate Limiting**: No API rate limiting implemented
@@ -765,7 +765,7 @@ php artisan test --coverage
 ### Immediate Next Steps
 
 1. **Authentication Implementation** ✅ **COMPLETED**
-   - ✅ Implement Bearer token authentication with Laravel Sanctum
+   - ✅ Implement custom authentication with X-Tenant header
    - ✅ Create brand API key validation middleware
    - ✅ Add authentication to all brand-facing endpoints
    - ✅ Implement multi-tenancy enforcement

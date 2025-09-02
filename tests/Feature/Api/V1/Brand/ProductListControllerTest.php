@@ -21,7 +21,7 @@ class ProductListControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->brand = $this->createTestBrand();
         $this->product1 = $this->createTestProduct($this->brand);
         $this->product2 = $this->createTestProduct($this->brand);

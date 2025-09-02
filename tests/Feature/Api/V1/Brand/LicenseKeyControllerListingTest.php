@@ -27,14 +27,14 @@ class LicenseKeyControllerListingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->brand = $this->createTestBrand();
         $this->product1 = $this->createTestProduct($this->brand);
         $this->product2 = $this->createTestProduct($this->brand);
-        
+
         $this->licenseKey1 = $this->createTestLicenseKey($this->brand);
         $this->licenseKey2 = $this->createTestLicenseKey($this->brand);
-        
+
         $this->license1 = $this->createTestLicense($this->product1, $this->licenseKey1);
         $this->license2 = $this->createTestLicense($this->product1, $this->licenseKey1);
         $this->license3 = $this->createTestLicense($this->product2, $this->licenseKey2);
