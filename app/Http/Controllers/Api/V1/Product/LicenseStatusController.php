@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1\Product;
 
 use App\Http\Controllers\Api\V1\BaseApiController;
-use App\Http\Requests\Api\V1\Product\CheckLicenseStatusRequest;
 use App\Services\Api\V1\Product\Interfaces\LicenseStatusServiceInterface;
 use Illuminate\Http\JsonResponse;
 
@@ -28,13 +27,11 @@ class LicenseStatusController extends BaseApiController
     /**
      * Get comprehensive status and entitlements for a license key.
      *
-     * @param  CheckLicenseStatusRequest  $request  The validated request
+     * @param  string  $licenseKeyUuid  The license key UUID from route
      * @return JsonResponse JSON response with license key status
      */
-    public function status(CheckLicenseStatusRequest $request): JsonResponse
+    public function status(string $licenseKeyUuid): JsonResponse
     {
-        $licenseKeyUuid = $request->route('licenseKey');
-
         $status = $this->licenseStatusService->getLicenseKeyStatus($licenseKeyUuid);
 
         if (! $status) {
@@ -53,13 +50,11 @@ class LicenseStatusController extends BaseApiController
     /**
      * Check if a license key is valid and active.
      *
-     * @param  CheckLicenseStatusRequest  $request  The validated request
+     * @param  string  $licenseKeyUuid  The license key UUID from route
      * @return JsonResponse JSON response with validity status
      */
-    public function isValid(CheckLicenseStatusRequest $request): JsonResponse
+    public function isValid(string $licenseKeyUuid): JsonResponse
     {
-        $licenseKeyUuid = $request->route('licenseKey');
-
         $isValid = $this->licenseStatusService->isLicenseKeyValid($licenseKeyUuid);
 
         return $this->successResponse(
@@ -75,13 +70,11 @@ class LicenseStatusController extends BaseApiController
     /**
      * Get entitlements for a license key.
      *
-     * @param  CheckLicenseStatusRequest  $request  The validated request
+     * @param  string  $licenseKeyUuid  The license key UUID from route
      * @return JsonResponse JSON response with entitlements
      */
-    public function entitlements(CheckLicenseStatusRequest $request): JsonResponse
+    public function entitlements(string $licenseKeyUuid): JsonResponse
     {
-        $licenseKeyUuid = $request->route('licenseKey');
-
         $entitlements = $this->licenseStatusService->getLicenseKeyEntitlements($licenseKeyUuid);
 
         if (empty($entitlements)) {
@@ -103,13 +96,11 @@ class LicenseStatusController extends BaseApiController
     /**
      * Get seat usage information for a license key.
      *
-     * @param  CheckLicenseStatusRequest  $request  The validated request
+     * @param  string  $licenseKeyUuid  The license key UUID from route
      * @return JsonResponse JSON response with seat usage
      */
-    public function seatUsage(CheckLicenseStatusRequest $request): JsonResponse
+    public function seatUsage(string $licenseKeyUuid): JsonResponse
     {
-        $licenseKeyUuid = $request->route('licenseKey');
-
         $seatUsage = $this->licenseStatusService->getSeatUsage($licenseKeyUuid);
 
         return $this->successResponse(

@@ -43,11 +43,26 @@ class LicenseStatusService implements LicenseStatusServiceInterface
             'seat_usage' => $this->getSeatUsage($licenseKeyUuid),
             'summary' => [
                 'total_products' => $licenseKey->licenses->count(),
-                'active_licenses' => $licenseKey->licenses->where('status', LicenseStatus::VALID)->count(),
-                'total_seats' => $licenseKey->licenses->where('status', LicenseStatus::VALID)->sum('max_seats'),
-                'used_seats' => $licenseKey->licenses->where('status', LicenseStatus::VALID)->sum(function ($license) {
-                    return $license->activations->where('status', \App\Enums\ActivationStatus::ACTIVE)->count();
-                }),
+                'active_licenses' => $licenseKey->licenses
+                    ->where('status', LicenseStatus::VALID)
+                    ->filter(function ($license) {
+                        return $license->expires_at === null || $license->expires_at > now();
+                    })
+                    ->count(),
+                'total_seats' => $licenseKey->licenses
+                    ->where('status', LicenseStatus::VALID)
+                    ->filter(function ($license) {
+                        return $license->expires_at === null || $license->expires_at > now();
+                    })
+                    ->sum('max_seats'),
+                'used_seats' => $licenseKey->licenses
+                    ->where('status', LicenseStatus::VALID)
+                    ->filter(function ($license) {
+                        return $license->expires_at === null || $license->expires_at > now();
+                    })
+                    ->sum(function ($license) {
+                        return $license->activations->where('status', \App\Enums\ActivationStatus::ACTIVE)->count();
+                    }),
             ],
         ];
     }
@@ -96,9 +111,8 @@ class LicenseStatusService implements LicenseStatusServiceInterface
 
         return $licenseKey->licenses
             ->where('status', LicenseStatus::VALID)
-            ->where(function ($query) {
-                $query->whereNull('expires_at')
-                    ->orWhere('expires_at', '>', now());
+            ->filter(function ($license) {
+                return $license->expires_at === null || $license->expires_at > now();
             })
             ->map(function ($license) {
                 $activeActivations = $license->activations
@@ -122,7 +136,7 @@ class LicenseStatusService implements LicenseStatusServiceInterface
                         'total' => $license->max_seats,
                         'used' => $activeActivations->count(),
                         'available' => $license->max_seats ? ($license->max_seats - $activeActivations->count()) : null,
-                        'usage_percentage' => $license->max_seats ? round(($activeActivations->count() / $license->max_seats) * 100, 2) : null,
+                        'usage_percentage' => $license->max_seats ? (float) round(($activeActivations->count() / $license->max_seats) * 100, 2) : null,
                     ],
                     'activations' => $activeActivations->map(function ($activation) {
                         return [
@@ -197,7 +211,7 @@ class LicenseStatusService implements LicenseStatusServiceInterface
             'total_seats' => $totalSeats,
             'used_seats' => $usedSeats,
             'available_seats' => $totalSeats ? ($totalSeats - $usedSeats) : 0,
-            'usage_percentage' => $totalSeats ? round(($usedSeats / $totalSeats) * 100, 2) : 0,
+            'usage_percentage' => $totalSeats ? (float) round(($usedSeats / $totalSeats) * 100, 2) : 0.0,
             'products' => $products,
         ];
     }
@@ -214,19 +228,30 @@ class LicenseStatusService implements LicenseStatusServiceInterface
             return 'inactive';
         }
 
+        // Check if there are any suspended licenses (regardless of expiration)
+        $suspendedLicenses = $licenseKey->licenses
+            ->where('status', LicenseStatus::SUSPENDED);
+
+        if ($suspendedLicenses->isNotEmpty()) {
+            return 'partially_suspended';
+        }
+
+        // Check if there are any cancelled licenses
+        $cancelledLicenses = $licenseKey->licenses
+            ->where('status', LicenseStatus::CANCELLED);
+
+        if ($cancelledLicenses->isNotEmpty()) {
+            return 'partially_cancelled';
+        }
+
         $validLicenses = $licenseKey->licenses
             ->where('status', LicenseStatus::VALID)
-            ->where(function ($query) {
-                $query->whereNull('expires_at')
-                    ->orWhere('expires_at', '>', now());
+            ->filter(function ($license) {
+                return $license->expires_at === null || $license->expires_at > now();
             });
 
         if ($validLicenses->isEmpty()) {
             return 'no_valid_licenses';
-        }
-
-        if ($validLicenses->where('status', LicenseStatus::SUSPENDED)->isNotEmpty()) {
-            return 'partially_suspended';
         }
 
         return 'active';

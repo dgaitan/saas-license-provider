@@ -20,6 +20,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // API v1 routes - Force JSON responses for all API endpoints
 Route::prefix('v1')->middleware(['force.json'])->group(function () {
+    // Product-facing APIs for license status checking (US4) - Must come before general license key routes
+    Route::controller(App\Http\Controllers\Api\V1\Product\LicenseStatusController::class)->group(function () {
+        Route::get('/license-keys/{licenseKey}/status', 'status');
+        Route::get('/license-keys/{licenseKey}/is-valid', 'isValid');
+        Route::get('/license-keys/{licenseKey}/entitlements', 'entitlements');
+        Route::get('/license-keys/{licenseKey}/seat-usage', 'seatUsage');
+    });
+
     // Brand-facing APIs for license provisioning (US1 & US2)
     Route::controller(App\Http\Controllers\Api\V1\Brand\LicenseKeyController::class)->group(function () {
         Route::post('/license-keys', 'store');
@@ -40,13 +48,5 @@ Route::prefix('v1')->middleware(['force.json'])->group(function () {
         Route::post('/licenses/{license}/activate', 'activate');
         Route::post('/licenses/{license}/deactivate', 'deactivate');
         Route::get('/licenses/{license}/activation-status', 'status');
-    });
-
-    // Product-facing APIs for license status checking (US4)
-    Route::controller(App\Http\Controllers\Api\V1\Product\LicenseStatusController::class)->group(function () {
-        Route::get('/license-keys/{licenseKey}/status', 'status');
-        Route::get('/license-keys/{licenseKey}/is-valid', 'isValid');
-        Route::get('/license-keys/{licenseKey}/entitlements', 'entitlements');
-        Route::get('/license-keys/{licenseKey}/seat-usage', 'seatUsage');
     });
 });
