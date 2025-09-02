@@ -42,6 +42,7 @@ Route::prefix('v1')->middleware(['force.json'])->group(function () {
             Route::patch('/licenses/{license}/suspend', 'suspend');
             Route::patch('/licenses/{license}/resume', 'resume');
             Route::patch('/licenses/{license}/cancel', 'cancel');
+            Route::post('/licenses/{license}/force-deactivate-seats', 'forceDeactivateSeats');
         });
     });
 
@@ -50,5 +51,6 @@ Route::prefix('v1')->middleware(['force.json'])->group(function () {
         Route::post('/licenses/{license}/activate', 'activate');
         Route::post('/licenses/{license}/deactivate', 'deactivate');
         Route::get('/licenses/{license}/activation-status', 'status');
+        Route::get('/licenses/{license}/seat-usage', 'seatUsage');
     });
 });

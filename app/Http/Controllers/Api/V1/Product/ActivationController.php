@@ -110,4 +110,23 @@ class ActivationController extends BaseApiController
             return $this->errorResponse($e->getMessage(), 400);
         }
     }
+
+    /**
+     * Get seat usage information for a license.
+     *
+     * US5: End-user product or customer can check seat usage
+     */
+    public function seatUsage(License $license): JsonResponse
+    {
+        try {
+            $seatUsage = $this->activationService->getSeatUsage($license);
+
+            return $this->successResponse(
+                $seatUsage,
+                'Seat usage information retrieved successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
 }
