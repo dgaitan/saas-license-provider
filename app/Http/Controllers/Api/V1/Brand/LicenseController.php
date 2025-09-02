@@ -7,6 +7,7 @@ use App\Http\Requests\Api\V1\Brand\ForceDeactivateSeatsRequest;
 use App\Http\Requests\Api\V1\Brand\RenewLicenseRequest;
 use App\Http\Requests\Api\V1\Brand\StoreLicenseRequest;
 use App\Http\Resources\Api\V1\LicenseResource;
+use App\Http\Resources\Api\V1\Brand\LicenseListResource;
 use App\Models\Brand;
 use App\Models\License;
 use App\Services\Api\V1\Brand\LicenseService;
@@ -20,6 +21,107 @@ class LicenseController extends BaseApiController
         private LicenseService $licenseService,
         private ActivationService $activationService
     ) {}
+
+    /**
+     * Display a listing of licenses for the authenticated brand.
+     *
+     * @param  Request  $request  The request instance
+     * @return JsonResponse Response containing license list
+     */
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $brand = $this->getAuthenticatedBrand($request);
+
+            $query = License::whereHas('licenseKey', function ($q) use ($brand) {
+                $q->where('brand_id', $brand->id);
+            });
+
+            // Search functionality
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->whereHas('product', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('slug', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by status
+            if ($request->has('status')) {
+                $query->where('status', $request->status);
+            }
+
+            // Filter by product
+            if ($request->has('product_uuid')) {
+                $query->whereHas('product', function ($q) use ($request) {
+                    $q->where('uuid', $request->product_uuid);
+                });
+            }
+
+            // Pagination
+            $perPage = $request->get('per_page', 15);
+            $licenses = $query->with(['licenseKey', 'product', 'activations'])
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage);
+
+            return $this->successResponse(
+                [
+                    'licenses' => LicenseListResource::collection($licenses),
+                    'pagination' => [
+                        'current_page' => $licenses->currentPage(),
+                        'last_page' => $licenses->lastPage(),
+                        'per_page' => $licenses->perPage(),
+                        'total' => $licenses->total(),
+                    ],
+                ],
+                'Licenses retrieved successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                'Failed to retrieve licenses: ' . $e->getMessage(),
+                500
+            );
+        }
+    }
+
+    /**
+     * Get summary statistics for licenses.
+     *
+     * @param  Request  $request  The request instance
+     * @return JsonResponse Response containing summary data
+     */
+    public function summary(Request $request): JsonResponse
+    {
+        try {
+            $brand = $this->getAuthenticatedBrand($request);
+
+            $baseQuery = License::whereHas('licenseKey', function ($q) use ($brand) {
+                $q->where('brand_id', $brand->id);
+            });
+
+            $totalLicenses = $baseQuery->count();
+            $validLicenses = (clone $baseQuery)->where('status', 'valid')->count();
+            $suspendedLicenses = (clone $baseQuery)->where('status', 'suspended')->count();
+            $cancelledLicenses = (clone $baseQuery)->where('status', 'cancelled')->count();
+            $expiredLicenses = (clone $baseQuery)->where('status', 'expired')->count();
+
+            return $this->successResponse(
+                [
+                    'total' => $totalLicenses,
+                    'valid' => $validLicenses,
+                    'suspended' => $suspendedLicenses,
+                    'cancelled' => $cancelledLicenses,
+                    'expired' => $expiredLicenses,
+                ],
+                'License summary retrieved successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                'Failed to retrieve license summary: ' . $e->getMessage(),
+                500
+            );
+        }
+    }
 
     /**
      * Store a newly created license.
