@@ -2,66 +2,62 @@ name: Laravel Tests
 
 on:
   pull_request:
-    branches: [ master, main ]
+    branches: [master, main]
   push:
-    branches: [ master, main ]
+    branches: [master, main]
 
 jobs:
   tests:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15 # Use latest stable PostgreSQL version
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: 🛠 Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, mbstring, pdo, pdo_sqlite, phar, tokenizer, xml, xmlwriter, zip, curl, fileinfo, openssl, pcntl, posix, sodium, bcmath, soap, sockets, tidy, xmlrpc, xsl, zip, calendar, exif, ftp, gettext, shmop, sysvmsg, sysvsem, sysvshm, wddx, xmlreader, xmlwriter, xsl, zend-opcache
-        coverage: none
+      - name: 📦 Set Up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3 # Change this based on your Laravel version
+          extensions: pdo, pdo_pgsql
+          coverage: none
 
-    - name: Copy .env
-      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: ⚡ Install Composer Dependencies
+        run: composer install --prefer-dist --optimize-autoloader
 
-    - name: Install dependencies
-      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: 🔑 Set Up Laravel Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          echo "DB_CONNECTION=pgsql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_DATABASE=testing" >> .env
+          echo "DB_USERNAME=postgres" >> .env
+          echo "DB_PASSWORD=secret" >> .env
+          echo "REDIS_HOST=127.0.0.1" >> .env
+          echo "REDIS_PORT=6379" >> .env
+          echo "APP_ENV=testing" >> .env
 
-    - name: Generate key
-      run: php artisan key:generate
+      - name: 🔄 Wait for PostgreSQL
+        run: sleep 10 # Ensures PostgreSQL is ready before running migrations
 
-    - name: Directory permissions
-      run: chmod -R 777 storage bootstrap/cache
+      - name: 📊 Run Migrations
+        run: php artisan migrate --env=testing --force
 
-    - name: Create database
-      run: |
-        php artisan migrate --force
-      env:
-        DB_CONNECTION: sqlite
-        DB_DATABASE: :memory:
-
-    - name: Install Pest
-      run: composer require pestphp/pest --dev --no-interaction
-
-    - name: Install Laravel Pint
-      run: composer require laravel/pint --dev --no-interaction
-
-    - name: Run Laravel Pint
-      run: ./vendor/bin/pint --test
-
-    - name: Run tests with Pest
-      run: php artisan test
-      env:
-        DB_CONNECTION: sqlite
-        DB_DATABASE: :memory:
-
-    - name: Upload test results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: test-results
-        path: |
-          storage/logs/
-          storage/framework/cache/
-          storage/framework/sessions/
-          storage/framework/views/
+      - name: 🧪 Run Pest Tests
+        run: vendor/bin/pest --colors
