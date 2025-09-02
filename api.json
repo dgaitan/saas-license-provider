@@ -1,0 +1,2850 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "License Service API Documentation",
+        "version": "1.0.0",
+        "description": "Centralized License Service API for Multi-Brand Ecosystem\n\nThis API provides a centralized service for managing licenses and entitlements across multiple brands in the group.one ecosystem. It acts as the single source of truth for license lifecycle and entitlements, allowing brand-specific systems to provision, update, and query licenses while enabling end-user products to activate and validate their usage.\n\n## Key Features\n- **Multi-tenant License Management**: Isolated brand environments with secure API access\n- **License Lifecycle**: Full lifecycle management including creation, renewal, suspension, and cancellation\n- **Seat Management**: Flexible seat allocation and tracking for products\n- **Cross-Brand Access**: Unified view of licenses across all brands for authorized users\n- **Instance Activation**: Track license activations for specific instances (sites, machines, etc.)\n\n## Authentication\n**Brand-facing endpoints** require authentication using the `X-Tenant: {BRAND_API_KEY}` header, where the API key is specific to each brand.\n\n**Product-facing endpoints** (license activation, status checking) do not require authentication and are designed for end-user products to access directly.\n\n## Rate Limiting\nAPI requests are subject to rate limiting to ensure fair usage and system stability."
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8002/api",
+            "description": "Local Development"
+        },
+        {
+            "url": "https://api.group.one/api",
+            "description": "Production"
+        }
+    ],
+    "security": [
+        {
+            "apiKey": []
+        }
+    ],
+    "paths": {
+        "/v1/licenses/{license}/activate": {
+            "post": {
+                "operationId": "activation.activate",
+                "description": "US3: End-user product can activate a license",
+                "summary": "Activate a license for a specific instance",
+                "tags": [
+                    "Activation"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ActivateLicenseRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License activated successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/ActivationResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}/deactivate": {
+            "post": {
+                "operationId": "activation.deactivate",
+                "description": "US5: End-user product or customer can deactivate a seat",
+                "summary": "Deactivate a license for a specific instance",
+                "tags": [
+                    "Activation"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeactivateLicenseRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License deactivated successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/ActivationResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}/activation-status": {
+            "get": {
+                "operationId": "activation.status",
+                "summary": "Get activation status for a license and instance",
+                "tags": [
+                    "Activation"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Instance identifier is required"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Activation status retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/ActivationResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}/seat-usage": {
+            "get": {
+                "operationId": "activation.seatUsage",
+                "description": "US5: End-user product or customer can check seat usage",
+                "summary": "Get seat usage information for a license",
+                "tags": [
+                    "Activation"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Seat usage information retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "supports_seat_management": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "total_seats": {
+                                                            "type": [
+                                                                "integer",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "used_seats": {
+                                                            "type": "string"
+                                                        },
+                                                        "available_seats": {
+                                                            "type": "string"
+                                                        },
+                                                        "usage_percentage": {
+                                                            "anyOf": [
+                                                                {
+                                                                    "type": "string"
+                                                                },
+                                                                {
+                                                                    "type": "integer",
+                                                                    "enum": [
+                                                                        0
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        "active_activations": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "supports_seat_management",
+                                                        "total_seats",
+                                                        "used_seats",
+                                                        "available_seats",
+                                                        "usage_percentage",
+                                                        "active_activations"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "supports_seat_management": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "message": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "This license does not support seat management"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "supports_seat_management",
+                                                        "message"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/customers/licenses": {
+            "get": {
+                "operationId": "crossBrand.listLicensesByCustomer",
+                "description": "US6: Brands can list licenses by customer email across all brands\nThis endpoint allows brands to see what licenses a customer has\nacross the entire ecosystem, not just their own brand.",
+                "summary": "List all licenses for a customer email across all brands",
+                "tags": [
+                    "CrossBrand"
+                ],
+                "parameters": [
+                    {
+                        "name": "customer_email",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email",
+                            "maxLength": 255
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Failed to retrieve customer license information"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "customer_email": {
+                                                    "type": "string"
+                                                },
+                                                "total_license_keys": {
+                                                    "type": "string"
+                                                },
+                                                "total_licenses": {
+                                                    "type": "string"
+                                                },
+                                                "brands_count": {
+                                                    "type": "string"
+                                                },
+                                                "brands": {
+                                                    "type": "string"
+                                                },
+                                                "license_keys": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/CustomerLicenseSummaryResource"
+                                                    }
+                                                },
+                                                "licenses_summary": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total_active": {
+                                                            "type": "string"
+                                                        },
+                                                        "total_suspended": {
+                                                            "type": "string"
+                                                        },
+                                                        "total_cancelled": {
+                                                            "type": "string"
+                                                        },
+                                                        "total_expired": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total_active",
+                                                        "total_suspended",
+                                                        "total_cancelled",
+                                                        "total_expired"
+                                                    ]
+                                                },
+                                                "products_summary": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "customer_email",
+                                                "total_license_keys",
+                                                "total_licenses",
+                                                "brands_count",
+                                                "brands",
+                                                "license_keys",
+                                                "licenses_summary",
+                                                "products_summary"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/customers/licenses/brand": {
+            "get": {
+                "operationId": "crossBrand.listLicensesByCustomerInBrand",
+                "description": "This endpoint allows brands to see what licenses a customer has\nspecifically within their own brand.",
+                "summary": "Get a summary of customer licenses within a specific brand",
+                "tags": [
+                    "CrossBrand"
+                ],
+                "parameters": [
+                    {
+                        "name": "customer_email",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email",
+                            "maxLength": 255
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Failed to retrieve customer license information for brand"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "customer_email": {
+                                                    "type": "string"
+                                                },
+                                                "brand": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "uuid": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "slug": {
+                                                            "type": "string"
+                                                        },
+                                                        "domain": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "uuid",
+                                                        "name",
+                                                        "slug",
+                                                        "domain"
+                                                    ]
+                                                },
+                                                "license_keys_count": {
+                                                    "type": "string"
+                                                },
+                                                "licenses_count": {
+                                                    "type": "string"
+                                                },
+                                                "license_keys": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/CustomerLicenseSummaryResource"
+                                                    }
+                                                },
+                                                "licenses_summary": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total_active": {
+                                                            "type": "string"
+                                                        },
+                                                        "total_suspended": {
+                                                            "type": "string"
+                                                        },
+                                                        "total_cancelled": {
+                                                            "type": "string"
+                                                        },
+                                                        "total_expired": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total_active",
+                                                        "total_suspended",
+                                                        "total_cancelled",
+                                                        "total_expired"
+                                                    ]
+                                                },
+                                                "products_summary": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "customer_email",
+                                                "brand",
+                                                "license_keys_count",
+                                                "licenses_count",
+                                                "license_keys",
+                                                "licenses_summary",
+                                                "products_summary"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/licenses": {
+            "post": {
+                "operationId": "license.store",
+                "description": "US1: Brand can provision a license",
+                "summary": "Store a newly created license",
+                "tags": [
+                    "License"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreLicenseRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License created successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LicenseResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key or product not found or does not belong to brand"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "get": {
+                "operationId": "license.index",
+                "summary": "Display a listing of licenses for the authenticated brand",
+                "tags": [
+                    "License"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Pagination",
+                        "schema": {
+                            "type": "string",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Licenses retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "licenses": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/LicenseListResource"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "current_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "last_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "per_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "total": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "current_page",
+                                                        "last_page",
+                                                        "per_page",
+                                                        "total"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "licenses",
+                                                "pagination"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/licenses/summary": {
+            "get": {
+                "operationId": "license.summary",
+                "summary": "Get summary statistics for licenses",
+                "tags": [
+                    "License"
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License summary retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "total": {
+                                                    "type": "string"
+                                                },
+                                                "valid": {
+                                                    "type": "string"
+                                                },
+                                                "suspended": {
+                                                    "type": "string"
+                                                },
+                                                "cancelled": {
+                                                    "type": "string"
+                                                },
+                                                "expired": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "total",
+                                                "valid",
+                                                "suspended",
+                                                "cancelled",
+                                                "expired"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}": {
+            "get": {
+                "operationId": "license.show",
+                "summary": "Display the specified license",
+                "tags": [
+                    "License"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LicenseResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}/renew": {
+            "patch": {
+                "operationId": "license.renew",
+                "description": "US2: Brand can change license lifecycle",
+                "summary": "Renew a license by extending its expiration date",
+                "tags": [
+                    "License"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RenewLicenseRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License renewed successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LicenseResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}/suspend": {
+            "patch": {
+                "operationId": "license.suspend",
+                "description": "US2: Brand can change license lifecycle",
+                "summary": "Suspend a license",
+                "tags": [
+                    "License"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License suspended successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LicenseResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}/resume": {
+            "patch": {
+                "operationId": "license.resume",
+                "description": "US2: Brand can change license lifecycle",
+                "summary": "Resume a suspended license",
+                "tags": [
+                    "License"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License resumed successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LicenseResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}/cancel": {
+            "patch": {
+                "operationId": "license.cancel",
+                "description": "US2: Brand can change license lifecycle",
+                "summary": "Cancel a license",
+                "tags": [
+                    "License"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License cancelled successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LicenseResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/licenses/{license}/force-deactivate-seats": {
+            "post": {
+                "operationId": "license.forceDeactivateSeats",
+                "description": "US5: Brands can force deactivate seats if needed",
+                "summary": "Force deactivate all seats for a license",
+                "tags": [
+                    "License"
+                ],
+                "parameters": [
+                    {
+                        "name": "license",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ForceDeactivateSeatsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "license_uuid": {
+                                                    "type": "string"
+                                                },
+                                                "deactivated_seats": {
+                                                    "type": "integer"
+                                                },
+                                                "reason": {
+                                                    "type": "string"
+                                                },
+                                                "deactivated_at": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "license_uuid",
+                                                "deactivated_seats",
+                                                "reason",
+                                                "deactivated_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/license-keys": {
+            "post": {
+                "operationId": "licenseKey.store",
+                "description": "US1: Brand can provision a license",
+                "summary": "Store a newly created license key",
+                "tags": [
+                    "LicenseKey"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreLicenseKeyRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key created successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LicenseKeyResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "get": {
+                "operationId": "licenseKey.index",
+                "summary": "Display a listing of license keys for the authenticated brand",
+                "tags": [
+                    "LicenseKey"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Pagination",
+                        "schema": {
+                            "type": "string",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License keys retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "license_keys": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/LicenseKeyListResource"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "current_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "last_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "per_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "total": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "current_page",
+                                                        "last_page",
+                                                        "per_page",
+                                                        "total"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "license_keys",
+                                                "pagination"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/license-keys/summary": {
+            "get": {
+                "operationId": "licenseKey.summary",
+                "summary": "Get summary statistics for license keys",
+                "tags": [
+                    "LicenseKey"
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key summary retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "total": {
+                                                    "type": "string"
+                                                },
+                                                "active": {
+                                                    "type": "string"
+                                                },
+                                                "inactive": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "total",
+                                                "active",
+                                                "inactive"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/license-keys/{licenseKey}": {
+            "get": {
+                "operationId": "licenseKey.show",
+                "summary": "Display the specified license key",
+                "tags": [
+                    "LicenseKey"
+                ],
+                "parameters": [
+                    {
+                        "name": "licenseKey",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license key UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LicenseKeyResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/v1/license-keys/{licenseKeyUuid}/status": {
+            "get": {
+                "operationId": "licenseStatus.status",
+                "summary": "Get comprehensive status and entitlements for a license key",
+                "tags": [
+                    "LicenseStatus"
+                ],
+                "parameters": [
+                    {
+                        "name": "licenseKeyUuid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license key UUID from route",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key status retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": [
+                                                "array",
+                                                "null"
+                                            ],
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key not found"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/license-keys/{licenseKeyUuid}/is-valid": {
+            "get": {
+                "operationId": "licenseStatus.isValid",
+                "summary": "Check if a license key is valid and active",
+                "tags": [
+                    "LicenseStatus"
+                ],
+                "parameters": [
+                    {
+                        "name": "licenseKeyUuid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license key UUID from route",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key validity checked successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "license_key_uuid": {
+                                                    "type": "string"
+                                                },
+                                                "is_valid": {
+                                                    "type": "boolean"
+                                                },
+                                                "checked_at": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "license_key_uuid",
+                                                "is_valid",
+                                                "checked_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/license-keys/{licenseKeyUuid}/entitlements": {
+            "get": {
+                "operationId": "licenseStatus.entitlements",
+                "summary": "Get entitlements for a license key",
+                "tags": [
+                    "LicenseStatus"
+                ],
+                "parameters": [
+                    {
+                        "name": "licenseKeyUuid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license key UUID from route",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key entitlements retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "license_key_uuid": {
+                                                    "type": "string"
+                                                },
+                                                "entitlements": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "license_key_uuid",
+                                                "entitlements"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "License key not found or has no valid entitlements"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/license-keys/{licenseKeyUuid}/seat-usage": {
+            "get": {
+                "operationId": "licenseStatus.seatUsage",
+                "summary": "Get seat usage information for a license key",
+                "tags": [
+                    "LicenseStatus"
+                ],
+                "parameters": [
+                    {
+                        "name": "licenseKeyUuid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The license key UUID from route",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Seat usage information retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "license_key_uuid": {
+                                                    "type": "string"
+                                                },
+                                                "seat_usage": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "license_key_uuid",
+                                                "seat_usage"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/products": {
+            "get": {
+                "operationId": "productList.index",
+                "summary": "List all products for the authenticated brand",
+                "tags": [
+                    "ProductList"
+                ],
+                "parameters": [
+                    {
+                        "name": "is_active",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Pagination",
+                        "schema": {
+                            "type": "string",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Failed to retrieve products"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Products retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "products": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/ProductListResource"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "current_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "last_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "per_page": {
+                                                            "type": "string"
+                                                        },
+                                                        "total": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "current_page",
+                                                        "last_page",
+                                                        "per_page",
+                                                        "total"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "products",
+                                                "pagination"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/products/summary": {
+            "get": {
+                "operationId": "productList.summary",
+                "summary": "Get a summary of products for the authenticated brand",
+                "tags": [
+                    "ProductList"
+                ],
+                "responses": {
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Failed to retrieve product summary"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Product summary retrieved successfully"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "total_products": {
+                                                    "type": "string"
+                                                },
+                                                "active_products": {
+                                                    "type": "string"
+                                                },
+                                                "inactive_products": {
+                                                    "type": "string"
+                                                },
+                                                "total_seats_capacity": {
+                                                    "type": "string"
+                                                },
+                                                "products_by_seats": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "small": {
+                                                            "type": "string"
+                                                        },
+                                                        "medium": {
+                                                            "type": "string"
+                                                        },
+                                                        "large": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "small",
+                                                        "medium",
+                                                        "large"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "total_products",
+                                                "active_products",
+                                                "inactive_products",
+                                                "total_seats_capacity",
+                                                "products_by_seats"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "apiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-Tenant"
+            }
+        },
+        "schemas": {
+            "ActivateLicenseRequest": {
+                "type": "object",
+                "description": "Activate License Request\n\nValidates the request data for activating a license for a specific instance.\nThis endpoint allows end-user products to activate licenses for their instances.\n\n**Authentication**: This endpoint does not require authentication. It is designed for end-user products\nto activate licenses without needing to authenticate with the system.",
+                "properties": {
+                    "instance_id": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "instance_type": {
+                        "type": "string",
+                        "enum": [
+                            "wordpress",
+                            "machine",
+                            "cli",
+                            "app"
+                        ]
+                    },
+                    "instance_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uri",
+                        "maxLength": 500
+                    },
+                    "machine_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "instance_id",
+                    "instance_type"
+                ],
+                "title": "ActivateLicenseRequest"
+            },
+            "ActivationResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "instance_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "status_label": {
+                        "type": "string",
+                        "enum": [
+                            "Active",
+                            "Deactivated",
+                            "Expired"
+                        ]
+                    },
+                    "activated_at": {
+                        "type": "string"
+                    },
+                    "deactivated_at": {
+                        "type": "string"
+                    },
+                    "license": {
+                        "$ref": "#/components/schemas/LicenseResource"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "uuid",
+                    "instance_id",
+                    "status",
+                    "status_label",
+                    "activated_at",
+                    "deactivated_at",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "ActivationResource"
+            },
+            "CustomerLicenseSummaryResource": {
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "customer_email": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "key",
+                    "customer_email",
+                    "is_active",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "CustomerLicenseSummaryResource"
+            },
+            "DeactivateLicenseRequest": {
+                "type": "object",
+                "description": "Deactivate License Request\n\nValidates the request data for deactivating a license for a specific instance.\nThis endpoint allows end-user products to deactivate licenses, freeing up seats.\n\n**Authentication**: This endpoint does not require authentication. It is designed for end-user products\nto deactivate licenses without needing to authenticate with the system.",
+                "properties": {
+                    "instance_id": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "instance_type": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "instance_id",
+                    "instance_type"
+                ],
+                "title": "DeactivateLicenseRequest"
+            },
+            "ForceDeactivateSeatsRequest": {
+                "type": "object",
+                "description": "Force Deactivate Seats Request\n\nValidates the request data for forcefully deactivating license seats.\nThis endpoint allows brands to deactivate seats for administrative purposes.\n\n**Authentication Required**: This endpoint requires brand authentication using the `X-Tenant: {BRAND_API_KEY}` header.\nThe brand API key is automatically generated when a brand is created and can be found in the brands table.",
+                "properties": {
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    }
+                },
+                "title": "ForceDeactivateSeatsRequest"
+            },
+            "LicenseKeyListResource": {
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "customer_email": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "key",
+                    "customer_email",
+                    "is_active",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "LicenseKeyListResource"
+            },
+            "LicenseKeyResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "customer_email": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "uuid",
+                    "key",
+                    "customer_email",
+                    "is_active",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "LicenseKeyResource"
+            },
+            "LicenseListResource": {
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "type": "string"
+                    },
+                    "max_seats": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "product": {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "max_seats": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "uuid",
+                            "name",
+                            "slug",
+                            "max_seats"
+                        ]
+                    },
+                    "license_key": {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string"
+                            },
+                            "key": {
+                                "type": "string"
+                            },
+                            "customer_email": {
+                                "type": "string"
+                            },
+                            "is_active": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "uuid",
+                            "key",
+                            "customer_email",
+                            "is_active"
+                        ]
+                    },
+                    "activations_count": {
+                        "type": "integer"
+                    },
+                    "active_activations_count": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "status",
+                    "expires_at",
+                    "max_seats",
+                    "created_at",
+                    "updated_at",
+                    "product",
+                    "license_key"
+                ],
+                "title": "LicenseListResource"
+            },
+            "LicenseResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "license_key_id": {
+                        "type": "integer"
+                    },
+                    "product_id": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "status_label": {
+                        "type": "string",
+                        "enum": [
+                            "Valid",
+                            "Suspended",
+                            "Cancelled",
+                            "Expired"
+                        ]
+                    },
+                    "expires_at": {
+                        "type": "string"
+                    },
+                    "max_seats": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/ProductResource"
+                    },
+                    "license_key": {
+                        "$ref": "#/components/schemas/LicenseKeyResource"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "uuid",
+                    "license_key_id",
+                    "product_id",
+                    "status",
+                    "status_label",
+                    "expires_at",
+                    "max_seats",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "LicenseResource"
+            },
+            "ProductListResource": {
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "max_seats": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "name",
+                    "slug",
+                    "description",
+                    "max_seats",
+                    "is_active",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "ProductListResource"
+            },
+            "ProductResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "max_seats": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "uuid",
+                    "name",
+                    "slug",
+                    "description",
+                    "max_seats",
+                    "is_active",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "ProductResource"
+            },
+            "RenewLicenseRequest": {
+                "type": "object",
+                "description": "Renew License Request\n\nValidates the request data for renewing an existing license.\nThis endpoint allows brands to extend license expiration dates.\n\n**Authentication Required**: This endpoint requires brand authentication using the `X-Tenant: {BRAND_API_KEY}` header.\nThe brand API key is automatically generated when a brand is created and can be found in the brands table.",
+                "properties": {
+                    "days": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 3650
+                    },
+                    "expires_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "description": "Max 10 years"
+                    }
+                },
+                "title": "RenewLicenseRequest"
+            },
+            "StoreLicenseKeyRequest": {
+                "type": "object",
+                "description": "Store License Key Request\n\nValidates the request data for creating a new license key.\nThis endpoint allows brands to generate license keys for their customers.\n\n**Authentication Required**: This endpoint requires brand authentication using the `X-Tenant: {BRAND_API_KEY}` header.\nThe brand API key is automatically generated when a brand is created and can be found in the brands table.",
+                "properties": {
+                    "customer_email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "customer_email"
+                ],
+                "title": "StoreLicenseKeyRequest"
+            },
+            "StoreLicenseRequest": {
+                "type": "object",
+                "description": "Store License Request\n\nValidates the request data for creating a new license.\nThis endpoint allows brands to provision licenses for their customers.\n\n**Authentication Required**: This endpoint requires brand authentication using the `X-Tenant: {BRAND_API_KEY}` header.\nThe brand API key is automatically generated when a brand is created and can be found in the brands table.",
+                "properties": {
+                    "license_key_uuid": {
+                        "type": "string"
+                    },
+                    "product_uuid": {
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "max_seats": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1
+                    }
+                },
+                "required": [
+                    "license_key_uuid",
+                    "product_uuid"
+                ],
+                "title": "StoreLicenseRequest"
+            }
+        },
+        "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ModelNotFoundException": {
+                "description": "Not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

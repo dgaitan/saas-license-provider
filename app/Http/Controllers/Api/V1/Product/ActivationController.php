@@ -14,6 +14,8 @@ use Illuminate\Http\JsonResponse;
  * Product-facing API controller for license activation.
  *
  * US3: End-user product can activate a license
+ * 
+ * @unauthenticated
  */
 class ActivationController extends BaseApiController
 {

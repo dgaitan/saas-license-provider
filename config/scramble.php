@@ -41,7 +41,9 @@ This API provides a centralized service for managing licenses and entitlements a
 - **Instance Activation**: Track license activations for specific instances (sites, machines, etc.)
 
 ## Authentication
-All API endpoints require authentication using the `Authorization: Bearer {API_KEY}` header, where the API key is specific to each brand.
+**Brand-facing endpoints** require authentication using the `X-Tenant: {BRAND_API_KEY}` header, where the API key is specific to each brand.
+
+**Product-facing endpoints** (license activation, status checking) do not require authentication and are designed for end-user products to access directly.
 
 ## Rate Limiting
 API requests are subject to rate limiting to ensure fair usage and system stability.',
@@ -131,9 +133,9 @@ API requests are subject to rate limiting to ensure fair usage and system stabil
      */
     'security' => [
         'brandApiKey' => [
-            'type' => 'http',
-            'scheme' => 'bearer',
-            'bearerFormat' => 'API Key',
+            'type' => 'apiKey',
+            'in' => 'header',
+            'name' => 'X-Tenant',
             'description' => 'Brand API Key for authentication. Use the format: X-Tenant: {BRAND_API_KEY}',
         ],
     ],
