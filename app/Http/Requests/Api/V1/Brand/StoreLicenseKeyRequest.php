@@ -10,6 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the request data for creating a new license key.
  * This endpoint allows brands to generate license keys for their customers.
  * 
+ * **Authentication Required**: This endpoint requires brand authentication using the `Authorization: Bearer {BRAND_API_KEY}` header.
+ * The brand API key is automatically generated when a brand is created and can be found in the brands table.
+ * 
  * @bodyParam customer_email string required The customer's email address. Must be a valid email format. Example: customer@example.com
  */
 class StoreLicenseKeyRequest extends FormRequest
@@ -21,7 +24,8 @@ class StoreLicenseKeyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // TODO: Implement brand authentication via Bearer token
+        // Brand authentication is handled by the auth.brand middleware
+        // which validates the Authorization: Bearer {BRAND_API_KEY} header
         return true;
     }
 

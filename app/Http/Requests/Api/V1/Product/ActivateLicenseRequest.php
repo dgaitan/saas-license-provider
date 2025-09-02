@@ -10,6 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the request data for activating a license for a specific instance.
  * This endpoint allows end-user products to activate licenses for their instances.
  * 
+ * **Authentication**: This endpoint does not require authentication. It is designed for end-user products
+ * to activate licenses without needing to authenticate with the system.
+ * 
  * @bodyParam instance_id string required A unique identifier for the instance (site URL, machine ID, etc.). Maximum 255 characters. Example: "site-123" or "machine-abc"
  * @bodyParam instance_type string required The type of instance being activated. Must be one of: wordpress, machine, cli, app. Example: "wordpress"
  * @bodyParam instance_url string nullable The URL of the instance (for web-based products). Must be a valid URL. Maximum 500 characters. Example: "https://example.com"
@@ -24,8 +27,8 @@ class ActivateLicenseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // TODO: Implement product authentication via Bearer token
-        // For now, allow all requests
+        // This endpoint is public and does not require authentication
+        // It is designed for end-user products to activate licenses
         return true;
     }
 

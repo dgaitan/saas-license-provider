@@ -10,6 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the request data for renewing an existing license.
  * This endpoint allows brands to extend license expiration dates.
  * 
+ * **Authentication Required**: This endpoint requires brand authentication using the `Authorization: Bearer {BRAND_API_KEY}` header.
+ * The brand API key is automatically generated when a brand is created and can be found in the brands table.
+ * 
  * @bodyParam expires_at string required The new expiration date for the license. Must be a valid date in the future. Example: 2027-12-31
  */
 class RenewLicenseRequest extends FormRequest
@@ -21,7 +24,8 @@ class RenewLicenseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // TODO: Implement brand authentication via Bearer token
+        // Brand authentication is handled by the auth.brand middleware
+        // which validates the Authorization: Bearer {BRAND_API_KEY} header
         return true;
     }
 

@@ -10,6 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the request data for deactivating a license for a specific instance.
  * This endpoint allows end-user products to deactivate licenses, freeing up seats.
  * 
+ * **Authentication**: This endpoint does not require authentication. It is designed for end-user products
+ * to deactivate licenses without needing to authenticate with the system.
+ * 
  * @bodyParam instance_id string required The unique identifier for the instance to deactivate. Must match the instance_id used during activation. Example: "site-123"
  * @bodyParam reason string nullable The reason for deactivation (optional). Maximum 500 characters. Example: "Site migration completed"
  */
@@ -22,8 +25,8 @@ class DeactivateLicenseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // TODO: Implement product authentication via Bearer token
-        // For now, allow all requests
+        // This endpoint is public and does not require authentication
+        // It is designed for end-user products to deactivate licenses
         return true;
     }
 

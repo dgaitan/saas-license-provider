@@ -10,6 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the request data for creating a new license.
  * This endpoint allows brands to provision licenses for their customers.
  * 
+ * **Authentication Required**: This endpoint requires brand authentication using the `Authorization: Bearer {BRAND_API_KEY}` header.
+ * The brand API key is automatically generated when a brand is created and can be found in the brands table.
+ * 
  * @bodyParam license_key_uuid string required The UUID of the license key to associate with this license. Must exist in the license_keys table.
  * @bodyParam product_uuid string required The UUID of the product this license grants access to. Must exist in the products table.
  * @bodyParam expires_at string nullable The expiration date for the license. Must be a valid date in the future. Example: 2026-12-31
@@ -24,7 +27,8 @@ class StoreLicenseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // TODO: Implement brand authentication via Bearer token
+        // Brand authentication is handled by the auth.brand middleware
+        // which validates the Authorization: Bearer {BRAND_API_KEY} header
         return true;
     }
 

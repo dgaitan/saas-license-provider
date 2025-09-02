@@ -10,6 +10,7 @@ use App\Models\License;
 use App\Models\LicenseKey;
 use App\Models\Product;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -105,27 +106,19 @@ class CreateTestDataCommand extends Command
     }
 
     /**
-     * Create a new brand with authentication token.
+     * Create a brand with the given name
      */
     private function createBrand(string $name): Brand
     {
-        $this->info(sprintf("Creating brand: %s...", $name));
+        $this->info("Creating brand: {$name}...");
 
         $brand = Brand::create([
             'name' => $name,
             'slug' => Str::slug($name),
-            'domain' => sprintf('%s.com', Str::slug($name)),
+            'domain' => Str::slug($name) . '.com',
             'api_key' => Brand::generateApiKey(),
             'is_active' => true,
         ]);
-
-        // Create Sanctum token for API authentication
-        $token = $brand->createBrandToken('test-token');
-
-        $this->info(sprintf("   Brand ID: %d", $brand->id));
-        $this->info(sprintf("   Brand UUID: %s", $brand->uuid));
-        $this->info(sprintf("   API Key: %s", $brand->api_key));
-        $this->info(sprintf("   Auth Token: %s", $token));
 
         return $brand;
     }
@@ -269,102 +262,40 @@ class CreateTestDataCommand extends Command
     }
 
     /**
-     * Display comprehensive results and usage instructions.
+     * Display the results and provide usage instructions
      */
-    private function displayResults(Brand $brand, \Illuminate\Support\Collection $products, \Illuminate\Support\Collection $licenseKeys, \Illuminate\Support\Collection $licenses, \Illuminate\Support\Collection $activations): void
+    private function displayResults(Brand $brand, Collection $products, Collection $licenseKeys, Collection $licenses, Collection $activations): void
     {
-        $this->newLine();
-        $this->info('🎉 Test Data Creation Complete!');
-        $this->newLine();
+        $this->info("\n" . str_repeat('=', 60));
+        $this->info('🎉 Test Data Created Successfully!');
+        $this->info(str_repeat('=', 60));
 
-        // Summary
-        $this->table(
-            ['Entity', 'Count'],
-            [
-                ['Brands', 1],
-                ['Products', $products->count()],
-                ['License Keys', $licenseKeys->count()],
-                ['Licenses', $licenses->count()],
-                ['Activations', $activations->count()],
-            ]
-        );
+        $this->info("\n📊 Created Entities:");
+        $this->info("  • Brand: {$brand->name} (UUID: {$brand->uuid})");
+        $this->info("  • Products: {$products->count()}");
+        $this->info("  • License Keys: {$licenseKeys->count()}");
+        $this->info("  • Licenses: {$licenses->count()}");
+        $this->info("  • Activations: {$activations->count()}");
 
-        $this->newLine();
-        $this->info('🔑 Authentication Information');
-        $this->line(sprintf("Brand Name: %s", $brand->name));
-        $this->line(sprintf("Brand UUID: %s", $brand->uuid));
-        $this->line(sprintf("API Key: %s", $brand->api_key));
-        $this->line(sprintf("Auth Token: %s", $brand->tokens->first()->token));
+        $this->info("\n🔑 Brand Authentication:");
+        $this->info("  • Brand API Key: {$brand->api_key}");
+        $this->info("  • Use this API key in the Authorization header for brand-facing endpoints");
+        $this->info("  • Format: Authorization: Bearer {$brand->api_key}");
 
-        $this->newLine();
-        $this->info('📋 Sample Data Created');
+        $this->info("\n📋 Sample API Requests:");
+        $this->info("  • List Products: GET /api/v1/products");
+        $this->info("  • List Licenses: GET /api/v1/licenses");
+        $this->info("  • List License Keys: GET /api/v1/license-keys");
 
-        // Products
-        $this->line("Products:");
-        foreach ($products as $product) {
-            $this->line(sprintf("  • %s (UUID: %s, Max Seats: %d)", $product->name, $product->uuid, $product->max_seats));
-        }
+        $this->info("\n⚠️  Important Notes:");
+        $this->info("  • This is a BRAND API KEY, not a Sanctum token");
+        $this->info("  • Use 'Authorization: Bearer {$brand->api_key}' header");
+        $this->info("  • Product-facing endpoints (activation, status check) do not require authentication");
+        $this->info("  • Brand-facing endpoints require this API key for authentication");
 
-        // License Keys
-        $this->line("License Keys:");
-        foreach ($licenseKeys as $licenseKey) {
-            $this->line(sprintf("  • %s (UUID: %s)", $licenseKey->customer_email, $licenseKey->uuid));
-        }
-
-        // Licenses
-        $this->line("Licenses:");
-        foreach ($licenses as $license) {
-            $product = $products->firstWhere('id', $license->product_id);
-            $this->line(sprintf("  • %s (UUID: %s, Status: %s)", $product->name, $license->uuid, $license->status->value));
-        }
-
-        $this->newLine();
-        $this->info('🚀 How to Use the Brand Auth Token');
-
-        $this->line('1. Use the Authorization header in your API requests:');
-        $this->line(sprintf("   Authorization: Bearer %s", $brand->tokens->first()->token));
-
-        $this->line('2. Test the API endpoints:');
-        $this->line('   Base URL: http://localhost:8002/api/v1');
-
-        $this->line('3. Example cURL commands:');
-        $this->line('   # List license keys');
-        $this->line('   curl -X GET "http://localhost:8002/api/v1/license-keys" \\');
-        $this->line(sprintf("     -H \"Authorization: Bearer %s\"", $brand->tokens->first()->token));
-
-        $this->line('   # Create a new license key');
-        $this->line('   curl -X POST "http://localhost:8002/api/v1/license-keys" \\');
-        $this->line(sprintf("     -H \"Authorization: Bearer %s\" \\", $brand->tokens->first()->token));
-        $this->line('     -H "Content-Type: application/json" \\');
-        $this->line('     -d \'{"customer_email": "newuser@example.com"}\'');
-
-        $this->line('   # List customer licenses across all brands (US6)');
-        $this->line('   curl -X GET "http://localhost:8002/api/v1/customers/licenses?customer_email=john.doe@example.com" \\');
-        $this->line(sprintf("     -H \"Authorization: Bearer %s\"", $brand->tokens->first()->token));
-
-        $this->newLine();
-        $this->info('📚 Available API Endpoints');
-        $this->line('• POST /api/v1/license-keys - Create license key');
-        $this->line('• GET /api/v1/license-keys/{uuid} - Get license key');
-        $this->line('• POST /api/v1/licenses - Create license');
-        $this->line('• GET /api/v1/licenses/{uuid} - Get license');
-        $this->line('• PATCH /api/v1/licenses/{uuid}/renew - Renew license');
-        $this->line('• PATCH /api/v1/licenses/{uuid}/suspend - Suspend license');
-        $this->line('• PATCH /api/v1/licenses/{uuid}/resume - Resume license');
-        $this->line('• PATCH /api/v1/licenses/{uuid}/cancel - Cancel license');
-        $this->line('• GET /api/v1/customers/licenses - List customer licenses across brands (US6)');
-        $this->line('• GET /api/v1/customers/licenses/brand - List customer licenses within brand (US6)');
-
-        $this->newLine();
-        $this->info('🧪 Testing Tips');
-        $this->line('• Start the server: php artisan serve --host=0.0.0.0 --port=8002');
-        $this->line('• Use Postman or similar tool for easier API testing');
-        $this->line('• Check the response status codes and error messages');
-        $this->line('• Test both authenticated and unauthenticated endpoints');
-        $this->line('• Verify multi-tenancy by creating multiple brands');
-
-        $this->newLine();
-        $this->warn('⚠️  Note: This is test data. Do not use in production!');
-        $this->newLine();
+        $this->info("\n🚀 Ready to test your API endpoints!");
+        $this->info("  • Start the server: php artisan serve --port=8002");
+        $this->info("  • Test with cURL or your preferred API client");
+        $this->info("  • View API docs at: http://localhost:8002/docs/api");
     }
 }

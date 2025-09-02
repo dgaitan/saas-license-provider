@@ -10,6 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the request data for forcefully deactivating license seats.
  * This endpoint allows brands to deactivate seats for administrative purposes.
  * 
+ * **Authentication Required**: This endpoint requires brand authentication using the `Authorization: Bearer {BRAND_API_KEY}` header.
+ * The brand API key is automatically generated when a brand is created and can be found in the brands table.
+ * 
  * @bodyParam reason string nullable The reason for force deactivation. Maximum 500 characters. Example: "Customer requested deactivation"
  */
 class ForceDeactivateSeatsRequest extends FormRequest
@@ -21,7 +24,8 @@ class ForceDeactivateSeatsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // TODO: Implement brand authentication via Bearer token
+        // Brand authentication is handled by the auth.brand middleware
+        // which validates the Authorization: Bearer {BRAND_API_KEY} header
         return true;
     }
 

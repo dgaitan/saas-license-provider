@@ -125,4 +125,16 @@ API requests are subject to rate limiting to ensure fair usage and system stabil
     ],
 
     'extensions' => [],
+
+    /*
+     * Security schemes for the API
+     */
+    'security' => [
+        'brandApiKey' => [
+            'type' => 'http',
+            'scheme' => 'bearer',
+            'bearerFormat' => 'API Key',
+            'description' => 'Brand API Key for authentication. Use the format: Authorization: Bearer {BRAND_API_KEY}',
+        ],
+    ],
 ];

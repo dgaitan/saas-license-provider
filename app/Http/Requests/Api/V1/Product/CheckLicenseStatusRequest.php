@@ -10,6 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates the request data for checking license status and entitlements.
  * This endpoint allows end-user products to validate licenses and check seat availability.
  * 
+ * **Authentication**: This endpoint does not require authentication. It is designed for end-user products
+ * to check license status without needing to authenticate with the system.
+ * 
  * @bodyParam license_key string required The license key to check. Must be a valid license key string. Example: "LK-ABC123-DEF456"
  * @bodyParam instance_id string nullable The instance ID to check against (for seat validation). Maximum 255 characters. Example: "site-123"
  */
@@ -22,7 +25,8 @@ class CheckLicenseStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // This is a public endpoint - no authentication required
+        // This endpoint is public and does not require authentication
+        // It is designed for end-user products to check license status
         return true;
     }
 
