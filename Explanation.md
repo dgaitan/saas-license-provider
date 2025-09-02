@@ -661,6 +661,8 @@ php artisan key:generate
 ```
 
 4. **Database setup**
+By default it runs using sqlite. However, if you want to use postgres instead, please go to the .env and change the DB_CONNECTION env var to pgsql and ensure that connection with postgres is correct.
+
 ```bash
 # Create SQLite database
 touch database/database.sqlite

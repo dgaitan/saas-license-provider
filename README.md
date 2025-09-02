@@ -34,6 +34,18 @@ php artisan app:create-test-data
 ```
 
 This command will output the generated Brand API Key and sample UUIDs, which are essential for testing authenticated API endpoints.
+Please pay attention to the output, exactly where it shares the Brand API Key. You'll find something like this:
+
+```bash
+... more content here
+🔑 **Brand Authentication Instructions:**
+  • Use the Brand API Key for authentication
+  • Format: X-Tenant: brand_sw57zIiaPcqeLxfzoMOhUXXhbUFZ9Edf
+  • Add this header to all brand-facing API requests
+  • Example: curl -H "X-Tenant: brand_sw57zIiaPcqeLxfzoMOhUXXhbUFZ9Edf" http://localhost:8002/api/v1/products
+
+... more content here
+```
 
 ## 📚 API Documentation & Testing
 
