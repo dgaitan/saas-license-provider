@@ -3,19 +3,22 @@
 namespace App\Http\Controllers\Api\V1\Brand;
 
 use App\Http\Controllers\Api\V1\BaseApiController;
+use App\Http\Requests\Api\V1\Brand\ForceDeactivateSeatsRequest;
 use App\Http\Requests\Api\V1\Brand\RenewLicenseRequest;
 use App\Http\Requests\Api\V1\Brand\StoreLicenseRequest;
 use App\Http\Resources\Api\V1\LicenseResource;
 use App\Models\Brand;
 use App\Models\License;
 use App\Services\Api\V1\Brand\LicenseService;
+use App\Services\Api\V1\Product\ActivationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class LicenseController extends BaseApiController
 {
     public function __construct(
-        private LicenseService $licenseService
+        private LicenseService $licenseService,
+        private ActivationService $activationService
     ) {}
 
     /**
@@ -155,6 +158,35 @@ class LicenseController extends BaseApiController
         return $this->successResponse(
             new LicenseResource($license),
             'License cancelled successfully'
+        );
+    }
+
+    /**
+     * Force deactivate all seats for a license.
+     *
+     * US5: Brands can force deactivate seats if needed
+     */
+    public function forceDeactivateSeats(ForceDeactivateSeatsRequest $request, License $license): JsonResponse
+    {
+        $brand = $this->getAuthenticatedBrand($request);
+
+        $license = $this->licenseService->findLicenseByUuid($license->uuid, $brand);
+
+        if (! $license) {
+            return $this->errorResponse('License not found', 404);
+        }
+
+        $reason = $request->validated('reason') ?? 'Administrative deactivation';
+        $deactivatedCount = $this->activationService->forceDeactivateAllSeats($license, $reason);
+
+        return $this->successResponse(
+            [
+                'license_uuid' => $license->uuid,
+                'deactivated_seats' => $deactivatedCount,
+                'reason' => $reason,
+                'deactivated_at' => now()->toISOString(),
+            ],
+            "Successfully deactivated {$deactivatedCount} seat(s)"
         );
     }
 }

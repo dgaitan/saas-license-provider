@@ -37,6 +37,7 @@ class Activation extends BaseApiModel
         'status',
         'activated_at',
         'deactivated_at',
+        'deactivation_reason',
     ];
 
     /**

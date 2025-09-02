@@ -6,6 +6,7 @@ use App\Enums\ActivationStatus;
 use App\Models\Activation;
 use App\Models\License;
 use App\Repositories\Interfaces\ActivationRepositoryInterface;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Service for handling license activation business logic.
@@ -86,6 +87,8 @@ class ActivationService
     /**
      * Deactivate a license for a specific instance.
      *
+     * US5: End-user product or customer can deactivate a seat
+     *
      * @param  License  $license  The license to deactivate
      * @param  string  $instanceId  The instance identifier
      * @param  string  $instanceType  The type of instance
@@ -117,7 +120,18 @@ class ActivationService
             throw new \Exception('License is not currently activated for this instance');
         }
 
+        // US5: Deactivate the seat and free up capacity
         $activation->deactivate();
+
+        // Log the seat deactivation for audit purposes
+        Log::info('Seat deactivated', [
+            'license_id' => $license->id,
+            'instance_id' => $instanceId,
+            'instance_type' => $instanceType,
+            'deactivated_at' => now(),
+            'available_seats_before' => $license->getAvailableSeats() + 1,
+            'available_seats_after' => $license->getAvailableSeats(),
+        ]);
 
         return $activation->fresh();
     }
@@ -145,5 +159,85 @@ class ActivationService
             $instanceUrl,
             $machineId
         );
+    }
+
+    /**
+     * Get seat usage information for a license.
+     *
+     * US5: End-user product or customer can check seat usage
+     *
+     * @param  License  $license  The license to check
+     * @return array Seat usage information
+     */
+    public function getSeatUsage(License $license): array
+    {
+        if (! $license->supportsSeatManagement()) {
+            return [
+                'supports_seat_management' => false,
+                'message' => 'This license does not support seat management',
+            ];
+        }
+
+        $activeActivations = $license->activations()
+            ->where('status', ActivationStatus::ACTIVE)
+            ->get();
+
+        $totalSeats = $license->max_seats;
+        $usedSeats = $activeActivations->count();
+        $availableSeats = $totalSeats - $usedSeats;
+        $usagePercentage = $totalSeats > 0 ? round(($usedSeats / $totalSeats) * 100, 2) : 0;
+
+        return [
+            'supports_seat_management' => true,
+            'total_seats' => $totalSeats,
+            'used_seats' => $usedSeats,
+            'available_seats' => $availableSeats,
+            'usage_percentage' => $usagePercentage,
+            'active_activations' => $activeActivations->map(function ($activation) {
+                return [
+                    'id' => $activation->id,
+                    'instance_id' => $activation->instance_id,
+                    'instance_type' => $activation->instance_type,
+                    'instance_url' => $activation->instance_url,
+                    'machine_id' => $activation->machine_id,
+                    'activated_at' => $activation->activated_at,
+                    'last_activity' => $activation->updated_at,
+                ];
+            }),
+        ];
+    }
+
+    /**
+     * Force deactivate all activations for a license (admin/brand function).
+     *
+     * US5: Brands can force deactivate seats if needed
+     *
+     * @param  License  $license  The license to deactivate all seats for
+     * @param  string  $reason  Reason for deactivation
+     * @return int Number of deactivated seats
+     */
+    public function forceDeactivateAllSeats(License $license, string $reason = 'Administrative deactivation'): int
+    {
+        $activeActivations = $license->activations()
+            ->where('status', ActivationStatus::ACTIVE)
+            ->get();
+
+        $deactivatedCount = 0;
+
+        foreach ($activeActivations as $activation) {
+            $activation->deactivate();
+            $activation->update(['deactivation_reason' => $reason]);
+            $deactivatedCount++;
+
+            Log::info('Seat force deactivated', [
+                'license_id' => $license->id,
+                'activation_id' => $activation->id,
+                'instance_id' => $activation->instance_id,
+                'reason' => $reason,
+                'deactivated_at' => now(),
+            ]);
+        }
+
+        return $deactivatedCount;
     }
 }

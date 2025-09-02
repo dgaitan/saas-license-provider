@@ -41,7 +41,7 @@ class LicenseFactory extends Factory
      */
     public function withStatus(LicenseStatus $status): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'status' => $status,
         ]);
     }
@@ -75,7 +75,7 @@ class LicenseFactory extends Factory
      */
     public function expired(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'status' => LicenseStatus::EXPIRED,
             'expires_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
         ]);
@@ -86,7 +86,7 @@ class LicenseFactory extends Factory
      */
     public function withSeats(int $maxSeats = 5): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'max_seats' => $maxSeats,
         ]);
     }
@@ -96,7 +96,7 @@ class LicenseFactory extends Factory
      */
     public function withoutSeats(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'max_seats' => null,
         ]);
     }
@@ -106,7 +106,7 @@ class LicenseFactory extends Factory
      */
     public function neverExpires(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'expires_at' => null,
         ]);
     }
@@ -116,7 +116,7 @@ class LicenseFactory extends Factory
      */
     public function forLicenseKey(LicenseKey $licenseKey): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'license_key_id' => $licenseKey->id,
         ]);
     }
@@ -126,8 +126,18 @@ class LicenseFactory extends Factory
      */
     public function forProduct(Product $product): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'product_id' => $product->id,
+        ]);
+    }
+
+    /**
+     * Create a license for a specific brand (through a license key).
+     */
+    public function forBrand(\App\Models\Brand $brand): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'license_key_id' => \App\Models\LicenseKey::factory()->forBrand($brand)->create()->id,
         ]);
     }
 }

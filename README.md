@@ -231,6 +231,22 @@ Content-Type: application/json
 GET /licenses/{uuid}/activation-status?instance_id=site-123&instance_type=wordpress
 ```
 
+**Get Seat Usage (US5)**
+```bash
+GET /licenses/{uuid}/seat-usage
+```
+
+**Force Deactivate All Seats (US5 - Brand Only)**
+```bash
+POST /licenses/{uuid}/force-deactivate-seats
+Authorization: Bearer {brand-api-key}
+Content-Type: application/json
+
+{
+    "reason": "Administrative deactivation"
+}
+```
+
 #### License Status Checking (End-User Products - Public)
 
 **Get License Key Status**
@@ -279,15 +295,19 @@ GET /license-keys/{uuid}/seat-usage
 - **Multi-Product Support**: Show all products accessible through a license key
 - **Real-time Information**: Current seat usage and availability
 
-### 🔄 **US5: End-user product or customer can deactivate a seat** - PARTIALLY IMPLEMENTED
-- **Deactivation Endpoint**: Available through US3 implementation
-- **Seat Management**: Integrated with activation system
-- **Full Implementation**: Would require additional business logic and validation
+### ✅ **US5: End-user product or customer can deactivate a seat** - FULLY IMPLEMENTED
+- **Seat Deactivation**: End-users can deactivate specific license activations
+- **Seat Usage Monitoring**: Check current seat usage and availability
+- **Force Deactivation**: Brands can force deactivate all seats for administrative purposes
+- **Audit Logging**: All seat deactivations are logged for compliance
+- **Seat Management**: Comprehensive seat tracking and management system
 
 ### 🔄 **US6: Brands can list licenses by customer email across all brands** - DESIGNED ONLY
 - **Cross-Brand Queries**: Architecture supports this functionality
 - **Multi-Tenancy Service**: Base infrastructure in place
 - **Implementation**: Would require additional API endpoints and business logic
+
+**Current Progress: 5 out of 6 User Stories (83%) are fully implemented**
 
 ## Architecture
 
